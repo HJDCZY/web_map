@@ -5,22 +5,17 @@ websocket.onopen = function (evt) {
 websocket.onclose = function (evt) {
     console.log("Disconnected");
 };
+let playerInfo = document.createElement('div');
 websocket.onmessage = function (evt) {
     console.log('Retrieved data from server: ' + evt.data);
     let players = JSON.parse(evt.data);
 
     // 在这里处理数据...
-    for (let i = 0; i < players.length; i++) {
-        let player = players[i];
-        console.log('Player name: ' + player.playername);
-        console.log('Coordinates: ' + player.croodx + ', ' + player.croody + ', ' + player.croodz);
-        console.log('Speed: ' + player.speed);
-        console.log('In plane: ' + player.inplane);
-        console.log('Server ID: ' + player.serverid);
-    }
+    
     //将玩家数据以HTML显示在页面上
     let player = players[0];
-    let playerInfo = document.createElement('div');
+    
+    //删除上一次显示的HTML
     playerInfo.innerHTML = `
         <h2>${player.playername}</h2>
         <p>Coordinates: ${player.croodx}, ${player.croody}, ${player.croodz}</p>
@@ -28,5 +23,5 @@ websocket.onmessage = function (evt) {
         <p>In plane: ${player.inplane}</p>
         <p>Server ID: ${player.serverid}</p>
     `;
-    document.body.appendChild(playerInfo);       
+    document.body.appendChild(playerInfo);     
 };

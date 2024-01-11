@@ -1,4 +1,3 @@
--- ngx.say("<p>hello, world</p>")
 
 -- 作为服务端接受fivem发来的websocket请求
 local server = require "resty.websocket.server"
