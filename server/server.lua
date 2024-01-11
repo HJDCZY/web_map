@@ -1,6 +1,6 @@
 -- ngx.say("<p>hello, world</p>")
 
--- 作为服务端接受websocket请求
+-- 作为服务端接受fivem发来的websocket请求
 local server = require "resty.websocket.server"
 local wb, err = server:new{
     timeout = 5000, -- in milliseconds
@@ -92,7 +92,7 @@ while true do
         playerserverid = msg.playerserverid
         -- 更新数据库，先查询serverid是否存在
         local res, err, errcode, sqlstate = db:query("select * from players where serverid = " .. msg.playerserverid)
-        if not res then
+        if next(res) == nil then
             -- 如果查询失败，说明数据库中没有这个serverid，插入一条新的记录
             local res, err, errcode, sqlstate = db:query("insert into players (serverid,playername) values (" .. msg.playerserverid .. ",'" .. msg.playername .. "')")
         else

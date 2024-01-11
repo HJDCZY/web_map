@@ -1,0 +1,128 @@
+-- 为网页前端的javascript提供websocket服务
+
+-- 服务器端的websocket服务
+local server = require "resty.websocket.server"
+local wb, err = server:new{
+    timeout = 5000, -- in milliseconds
+    max_payload_len = 65535,
+}
+if not wb then
+    ngx.log(ngx.ERR, "failed to new websocket: ", err)
+    return ngx.exit(444)
+end
+local connected = true
+
+local sqluser = "hjdczy"
+local sqlpassword = "yoyo14185721"
+
+local players = {}
+local player_count = 0
+for i=1,50 do
+    players[i] = nil ;
+end
+player = {}
+function player.new(croodx,croody,croodz,speed,inplane,serverid,playername)
+    local self = setmetatable({},player)
+    self.croodx = croodx
+    self.croody = croody
+    self.croodz = croodz
+    self.speed = speed
+    self.inplane = inplane
+    self.serverid = serverid
+    self.playername = playername
+    return self
+end
+function player:move(newcroodx,newcroody,newcroodz,newspeed,inplane)
+    self.croodx = newcroodx
+    self.croody = newcroody
+    self.croodz = newcroodz
+    self.speed = newspeed
+    self.inplane = inplane
+end
+
+
+local function querydatabase()
+    -- 查询数据库,并将所有结果写入palyer[]中
+    local res, err, errcode, sqlstate = db:query("select * from player")
+    if not res then
+        ngx.log(ngx.ERR, "bad result: ", err, ": ", errcode, ": ", sqlstate, ".")
+        return false
+    end
+    player_count = 0
+    for i, row in ipairs(res) do
+        player_count = player_count + 1
+        players[i] = player.new(row["croodx"],row["croody"],row["croodz"],row["speed"],row["inplane"],row["serverid"],row["playername"])
+    end
+    return true
+end
+local function send_data()
+    local data = cjson.encode(players)
+    local bytes, err = wb:send_text(data)
+    if not bytes then
+        ngx.log(ngx.ERR, "failed to send text: ", err)
+        return ngx.exit(444)
+    end
+    return true
+end
+    
+
+-- 初始化mysql
+local mysql = require "resty.mysql"
+local db, err = mysql:new()
+if not db then
+    ngx.log(ngx.ERR, "failed to instantiate mysql: ", err)
+    return
+end
+db:set_timeout(1000) -- 1 sec
+local ok, err, errcode, sqlstate = db:connect{
+    host = "127.0.0.1",
+    port = 3306,
+    database = "fivem_web_map",
+    user = sqluser,
+    password = sqlpassword,
+    charset = "utf8",
+    max_packet_size = 1024 * 1024,
+}
+if not ok then
+    ngx.log(ngx.ERR, "failed to connect: ", err, ": ", errcode, " ", sqlstate)
+    return
+end
+ngx.log(ngx.INFO, "connected to mysql.")
+
+-- 作为服务端接受浏览器发来的websocket请求
+while true do
+    local data, typ, err = wb:recv_frame()
+    if wb.fatal then
+        ngx.log(ngx.ERR, "failed to receive frame: ", err)
+        return ngx.exit(444)
+    end
+    if not data then
+        local bytes, err = wb:send_ping()
+        if not bytes then
+            ngx.log(ngx.ERR, "failed to send ping: ", err)
+            return ngx.exit(444)
+        end
+    elseif typ == "close" then
+        break
+    elseif typ == "ping" then
+        local bytes, err = wb:send_pong()
+        if not bytes then
+            ngx.log(ngx.ERR, "failed to send pong: ", err)
+            return ngx.exit(444)
+        end
+    elseif typ == "pong" then
+        -- do nothing
+    elseif typ == "text" then
+        if not querydatabase() then
+            ngx.log(ngx.ERR, "failed to query database")
+            return ngx.exit(444)
+        end
+        if not send_data() then
+            ngx.log(ngx.ERR, "failed to send data")
+            return ngx.exit(444)
+        end
+        -- 一秒钟发送一次数据
+        ngx.sleep(1)
+
+    end
+end
