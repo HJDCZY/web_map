@@ -1,7 +1,7 @@
 // fivem本身就是个浏览器套壳
 
-var ws_host = "127.0.0.1"
-var ws_port = 3307
+var ws_host = "hjdczy.top/ws"
+var ws_port = 2345
 var ws;
 var connected = false;
 
@@ -14,7 +14,9 @@ var playername;
 $(function(){
     window.addEventListener('message', function(event) {
         var item = event.data;
-        crood = item.crood;
+        croodx = item.croodx;
+        croody = item.croody;
+        croodz = item.croodz;
         speed = item.speed;
         inplane = item.inplane;
         playerserverid = item.playerserverid;
@@ -44,7 +46,9 @@ $(function(){
     setInterval(function(){
         if(connected){
             var data = {
-                crood:crood,
+                croodx:croodx,
+                croody:croody,
+                croodz:croodz,
                 speed:speed,
                 inplane:inplane,
                 playerserverid:playerserverid,
