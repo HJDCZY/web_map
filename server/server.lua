@@ -1,6 +1,7 @@
 
 -- 作为服务端接受fivem发来的websocket请求
 local server = require "resty.websocket.server"
+local cjson = require "cjson"
 local wb, err = server:new{
     timeout = 5000, -- in milliseconds
     max_payload_len = 65535,
@@ -57,14 +58,14 @@ if not ok then
     ngx.log(ngx.ERR, "failed to connect: ", err, ": ", errcode, " ", sqlstate)
     return
 end
-ngx.log(ngx.INFO, "connected to mysql.")
+-- ngx.log(ngx.INFO, "connected to mysql.")
 
 
 -- 监听客户端消息
 while true do
     local data, typ, err = wb:recv_frame()
     if wb.fatal then
-        ngx.log(ngx.ERR, "failed to receive frame: ", err)
+        -- ngx.log(ngx.ERR, "failed to receive frame: ", err)
         return ngx.exit(444)
     end
     if not data then
@@ -75,7 +76,11 @@ while true do
         end
     elseif typ == "close" then
         -- 删除数据库中的记录
-        local res, err, errcode, sqlstate = db:query("delete from players where serverid = " .. playerserverid)
+        if playerserverid ~= nil then
+            local res, err, errcode, sqlstate = db:query("delete from players where serverid = " .. playerserverid)
+        elseif playername ~= nil then
+            local res, err, errcode, sqlstate = db:query("delete from players where playername = '" .. playername .. "'")
+        end
     elseif typ == "ping" then
         local bytes, err = wb:send_pong()
         if not bytes then
@@ -87,16 +92,29 @@ while true do
     elseif typ == "text" then
         -- 接收到客户端消息
         local msg = cjson.decode(data)
-        ngx.log(ngx.INFO, "playername: ", msg.playername)
+        -- ngx.log(ngx.INFO, "playername: ", msg.playername, "serverid", msg.playerserverid)
+
         playerserverid = msg.playerserverid
-        -- 更新数据库，先查询serverid是否存在
-        local res, err, errcode, sqlstate = db:query("select * from players where serverid = " .. msg.playerserverid)
-        if next(res) == nil then
-            -- 如果查询失败，说明数据库中没有这个serverid，插入一条新的记录
-            local res, err, errcode, sqlstate = db:query("insert into players (serverid,playername) values (" .. msg.playerserverid .. ",'" .. msg.playername .. "')")
-        else
-            -- 如果查询成功，说明数据库中有这个serverid，更新记录的坐标和速度
-            local res, err, errcode, sqlstate = db:query("update players set croodx = " .. msg.croodx .. ", croody = " .. msg.croody .. ", croodz = " .. msg.croodz .. ", speed = " .. msg.speed .. ", inplane = " .. msg.inplane .. " where serverid = " .. msg.playerserverid)
+        if msg.playername ~= nil then 
+            -- 更新数据库，先查询serverid是否存在
+            local res, err, errcode, sqlstate = db:query("select * from players where serverid = " .. msg.playerserverid .. " and playername = '" .. msg.playername .. "'" )
+            if  not res or next(res) == nil then
+                -- 删除与serverid对应的记录
+                local res, err, errcode, sqlstate = db:query("delete from players where serverid = " .. msg.playerserverid)
+                -- 删除所有与playername对应的记录
+                local res, err, errcode, sqlstate = db:query("delete from players where playername = '" .. msg.playername .. "'")
+                -- 如果查询失败，说明数据库中没有这个serverid，创建新的记录
+                local res, err, errcode, sqlstate = db:query("insert into players (croodx, croody, croodz, speed, inplane, serverid, playername) values (" .. msg.croodx .. ", " .. msg.croody .. ", " .. msg.croodz .. ", " .. msg.speed .. ", " .. tostring(msg.inplane) .. ", " .. msg.playerserverid .. ", '" .. msg.playername .. "')")
+                if not res then
+                    ngx.log(ngx.ERR, "bad result: ", err, ": ", errcode, ": ", sqlstate, ".")
+                    return
+                end
+            else
+                -- 如果查询成功，说明数据库中有这个serverid，更新记录的坐标和速度
+                local res, err, errcode, sqlstate = db:query("update players set croodx = " .. msg.croodx .. ", croody = " .. msg.croody .. ", croodz = " .. msg.croodz .. ", speed = " .. msg.speed .. ", inplane = " .. tostring(msg.inplane) .. " where serverid = " .. msg.playerserverid)
+            end
         end
     end
 end
+local res, err, errcode, sqlstate = db:query("delete from players where serverid = " .. playerserverid)
+db.close()

@@ -10,7 +10,8 @@ client_scripts{
     'client.lua',
 }
 ui_page 'index.html'
-
+-- script 'script.js'
 files{
-    'script.js',
+    'index.html',
+    'script.js'
 }

@@ -78,6 +78,10 @@ local function querydatabase()
         return false
     end
     player_count = 0
+    -- 清空players
+    for i=1,50 do
+        players[i] = nil ;
+    end
     for i, row in ipairs(res) do
         player_count = player_count + 1
         players[i] = player.new(row["croodx"],row["croody"],row["croodz"],row["speed"],row["inplane"],row["serverid"],row["playername"])
@@ -88,7 +92,7 @@ local function send_data()
     local data = cjson.encode(players)
     local bytes, err = wb:send_text(data)
     if not bytes then
-        ngx.log(ngx.ERR, "failed to send text: ", err)
+        -- ngx.log(ngx.ERR, "failed to send text: ", err)
         return ngx.exit(444)
     end
     return true
