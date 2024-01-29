@@ -1,3 +1,4 @@
+-- 模组配置文件
 fx_version "adamant"
 game "gta5"
 

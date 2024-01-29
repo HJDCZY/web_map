@@ -14,8 +14,9 @@ if not wb then
 end
 local connected = true
 
+-- TODO: 修改硬编码
 local sqluser = "hjdczy"
-local sqlpassword = "yoyo14185721"
+local sqlpassword = "yoyo14185721" -- 为什么要硬编码 （测试是这样的）
 ngx.log(ngx.INFO, "connected to websocket.")
 local players = {}
 local player_count = 0
@@ -45,7 +46,7 @@ end
 
 
     
-
+-- TODO: 要做的活更多了（同上修改应编码）
 -- 初始化mysql
 local mysql = require "resty.mysql"
 local db, err = mysql:new()
