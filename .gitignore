@@ -3,3 +3,5 @@ proxy_temp
 scgi_temp
 .vscode
 uwsgi_temp
+# 忽略logs/目录下的所有文件
+logs/*

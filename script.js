@@ -28,7 +28,7 @@ $(function(){
     }
     );
 
-    var ws = new WebSocket("ws://"+ws_host+":"+ws_port+"/ws");
+    var ws = new WebSocket("wss://"+ws_host+":"+ws_port+"/ws");
     //ws = new WebSocket(`${pl}://${ws_host}:${ws_port}/`);
     ws.onopen = function(){
         console.log("websocket connect success");
