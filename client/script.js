@@ -32,6 +32,11 @@ websocket.onmessage = function (evt) {
         playerLabel.className = 'player-label';
         playerLabel.innerHTML = player.playername;
 
+        // 在飞机上
+        if (player.inplane === 1) {
+            playerLabel.classList.add('in-plane');
+        }
+
         // 计算百分比
         var leftPercentage = mapCoordinateToPercentage(player.croodx, -10000, 10000);
         var topPercentage = mapCoordinateToPercentage(player.croody, -10000, 10000);
