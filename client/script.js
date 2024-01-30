@@ -18,25 +18,36 @@ websocket.onmessage = function (evt) {
     mapContainer.innerHTML = '';
 
     playersData.forEach(function(player, i) {
-        console.log("Player Number: " + i);
-        console.log("Server ID: " + player.serverid);
-        console.log("Player Name: " + player.playername);
-        console.log("Coordinates (X, Y, Z): " + player.croodx + ", " + player.croody + ", " + player.croodz);
-        console.log("In Plane: " + (player.inplane === 1 ? "Yes" : "No"));
-        console.log("Speed: " + player.speed);
+        console.log(
+            "Player Number: " + i + "\n" +
+            "Server ID: " + player.serverid + "\n" +
+            "Player Name: " + player.playername + "\n" +
+            "Coordinates (X, Y, Z): " + player.croodx + ", " + player.croody + ", " + player.croodz + "\n" +
+            "In Plane: " + (player.inplane === 1 ? "Yes" : "No") + "\n" +
+            "Speed: " + player.speed + "\n"
+        );
 
         // 创建玩家名称标签
         var playerLabel = document.createElement('div');
         playerLabel.className = 'player-label';
         playerLabel.innerHTML = player.playername;
 
-        // 将玩家坐标映射到百分比，适应地图容器的大小
+        // 在飞机上
+        if (player.inplane === 1) {
+            playerLabel.classList.add('in-plane');
+        }
+
+        // 计算百分比
         var leftPercentage = mapCoordinateToPercentage(player.croodx, -10000, 10000);
         var topPercentage = mapCoordinateToPercentage(player.croody, -10000, 10000);
 
+        // 反转Y轴
+        var invertedTopPercentage = 100 - topPercentage;
+
         // 设置玩家名称标签的位置
         playerLabel.style.left = leftPercentage + '%';
-        playerLabel.style.top = topPercentage + '%';
+        playerLabel.style.top = invertedTopPercentage + '%';
+
 
         // 将玩家名称标签添加到地图容器中
         mapContainer.appendChild(playerLabel);
