@@ -78,14 +78,24 @@ $(function(){
             }
         });
     }
-    ws.onclose = function(){
-        console.log("websocket close");
-        connected = false;
-    }
+    ws.onclose = function(event){
+    console.log("websocket close, code: " + event.code + ", reason: " + event.reason);
+    connected = false;
+
+    // 重连
+    setTimeout(function() {
+        ws = new WebSocket("wss://"+ws_host+":"+ws_port+"/ws");
+        // 重新绑定事件处理器
+        ws.onmessage = onMessageHandler;
+        ws.onopen = onOpenHandler;
+        ws.onclose = onCloseHandler;
+        ws.onerror = onErrorHandler;
+    }, 1000); // 1秒后尝试重连
+};
     ws.onerror = function(){
         console.log("websocket error");
         connected = false;
-    }
+    };
     
     setInterval(function(){
         if(connected){
