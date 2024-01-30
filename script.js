@@ -22,6 +22,8 @@ $(function(){
         croody = item.croody;
         croodz = item.croodz;
         speed = item.speed;
+        heading = item.heading;
+        vehiclemodel = item.vehiclemodel;
         inplane = item.inplane;
         playerserverid = item.playerserverid;
         playername = item.playername;
@@ -93,6 +95,8 @@ $(function(){
                 croody:croody,
                 croodz:croodz,
                 speed:speed,
+                heading:heading,
+                vehiclemodel:vehiclemodel,
                 inplane:inplane,
                 playerserverid:playerserverid,
                 playername:playername

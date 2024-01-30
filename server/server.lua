@@ -93,7 +93,7 @@ while true do
         -- 接收到客户端消息
         local msg = cjson.decode(data)
         -- ngx.log(ngx.INFO, "playername: ", msg.playername, "serverid", msg.playerserverid)
-        if msg.type == playerdata then
+        if msg.type == 'playerdata' then
             playerserverid = msg.playerserverid
             if msg.playername ~= nil then 
                 -- 更新数据库，先查询serverid是否存在
@@ -104,14 +104,14 @@ while true do
                     -- 删除所有与playername对应的记录
                     local res, err, errcode, sqlstate = db:query("delete from players where playername = '" .. msg.playername .. "'")
                     -- 如果查询失败，说明数据库中没有这个serverid，创建新的记录
-                    local res, err, errcode, sqlstate = db:query("insert into players (croodx, croody, croodz, speed, inplane, serverid, playername) values (" .. msg.croodx .. ", " .. msg.croody .. ", " .. msg.croodz .. ", " .. msg.speed .. ", " .. tostring(msg.inplane) .. ", " .. msg.playerserverid .. ", '" .. msg.playername .. "')")
+                    local res, err, errcode, sqlstate = db:query("insert into players (croodx, croody, croodz, speed, inplane, serverid, playername,heading,vehiclemodel) values (" .. msg.croodx .. ", " .. msg.croody .. ", " .. msg.croodz .. ", " .. msg.speed .. ", " .. tostring(msg.inplane) .. ", " .. msg.playerserverid .. ", '" .. msg.playername .. "'," .. msg.heading .. ",'" .. msg.vehiclemodel .. "')")
                     if not res then
                         ngx.log(ngx.ERR, "bad result: ", err, ": ", errcode, ": ", sqlstate, ".")
                         return
                     end
                 else
-                    -- 如果查询成功，说明数据库中有这个serverid，更新记录的坐标和速度
-                    local res, err, errcode, sqlstate = db:query("update players set croodx = " .. msg.croodx .. ", croody = " .. msg.croody .. ", croodz = " .. msg.croodz .. ", speed = " .. msg.speed .. ", inplane = " .. tostring(msg.inplane) .. " where serverid = " .. msg.playerserverid)
+                    -- 如果查询成功，说明数据库中有这个serverid，更新记录的坐标和速度，和朝向和载具
+                    local res, err, errcode, sqlstate = db:query("update players set croodx = " .. msg.croodx .. ", croody = " .. msg.croody .. ", croodz = " .. msg.croodz .. ", speed = " .. msg.speed .. ", inplane = " .. tostring(msg.inplane) .. ", heading = " .. msg.heading .. ", vehiclemodel = '" .. msg.vehiclemodel .. "' where serverid = " .. msg.playerserverid .. " and playername = '" .. msg.playername .. "'")
                 end
             end
         elseif msg.type == "checkothers" then

@@ -15,5 +15,7 @@ CREATE TABLE IF NOT EXISTS `players` (
     `playername` varchar(255) NOT NULL,
     `inplane` boolean NOT NULL,
     `speed` double NOT NULL,
+    `heading` double NOT NULL,
+    `vehiclemodel` varchar(255) NOT NULL,
     PRIMARY KEY (`serverid`)
 ) ;

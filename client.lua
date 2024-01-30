@@ -16,6 +16,13 @@ Citizen.CreateThread(function ()
         -- 如果玩家在飞机上
         local inplane = IsPedInAnyPlane(playerped)
         local playername = GetPlayerName(PlayerId())
+        -- 获得玩家航向
+        local heading = GetEntityHeading(playerped)
+        --获得玩家载具的model
+        local vehicle = GetVehiclePedIsIn(playerped, false)
+        --获得载具名字
+        local vehiclemodel = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle))
+        -- print (vehiclemodel)
 
         -- 检查数据，必须都不是nil 
         -- print("name" .. playername)
@@ -34,6 +41,8 @@ Citizen.CreateThread(function ()
                 croodz = croodz,
                 speed = speedinknot,
                 inplane = inplane,
+                heading = heading,
+                vehiclemodel = vehiclemodel,
                 playerserverid = playerserverid,
                 playername = playername
             })

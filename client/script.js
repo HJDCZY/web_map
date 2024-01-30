@@ -24,7 +24,9 @@ websocket.onmessage = function (evt) {
             "Player Name: " + player.playername + "\n" +
             "Coordinates (X, Y, Z): " + player.croodx + ", " + player.croody + ", " + player.croodz + "\n" +
             "In Plane: " + (player.inplane === 1 ? "Yes" : "No") + "\n" +
-            "Speed: " + player.speed + "\n"
+            "Speed: " + player.speed + "\n"+
+            "heading: " + player.heading + "\n"+
+            "vehiclemodel: " + player.vehiclemodel + "\n"
         );
 
         // 创建玩家名称标签

@@ -24,7 +24,7 @@ for i=1,50 do
     players[i] = nil ;
 end
 local player = {}
-function player.new(croodx,croody,croodz,speed,inplane,serverid,playername)
+function player.new(croodx,croody,croodz,speed,inplane,serverid,playername,heading,vehiclemodel)    
     local self = setmetatable({},player)
     self.croodx = croodx
     self.croody = croody
@@ -33,14 +33,18 @@ function player.new(croodx,croody,croodz,speed,inplane,serverid,playername)
     self.inplane = inplane
     self.serverid = serverid
     self.playername = playername
+    self.heading = heading
+    self.vehiclemodel = vehiclemodel
     return self
 end
-function player:move(newcroodx,newcroody,newcroodz,newspeed,inplane)
+function player:move(newcroodx,newcroody,newcroodz,newspeed,inplane,heading,vehiclemodel)
     self.croodx = newcroodx
     self.croody = newcroody
     self.croodz = newcroodz
     self.speed = newspeed
     self.inplane = inplane
+    self.heading = heading
+    self.vehiclemodel = vehiclemodel
 end
 
 
@@ -85,7 +89,7 @@ local function querydatabase()
     end
     for i, row in ipairs(res) do
         player_count = player_count + 1
-        players[i] = player.new(row["croodx"],row["croody"],row["croodz"],row["speed"],row["inplane"],row["serverid"],row["playername"])
+        players[i] = player.new(row["croodx"],row["croody"],row["croodz"],row["speed"],row["inplane"],row["serverid"],row["playername"],row["heading"],row["vehiclemodel"])
     end
     return true
 end
