@@ -40,3 +40,14 @@ Citizen.CreateThread(function ()
         end
     end
 end)
+
+RegisterNUICallback('checkplayer', function(data, cb)
+    -- print (json.encode(data))
+    if GetPlayerFromServerId(data) ~= -1 then
+        -- print ("player exists")
+        cb(true)
+    else
+        -- print ("player not exists")
+        cb(false)
+    end
+end)

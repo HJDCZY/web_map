@@ -17,7 +17,7 @@ local connected = true
 -- TODO: 修改硬编码
 local sqluser = "hjdczy"
 local sqlpassword = "yoyo14185721" -- 为什么要硬编码 （测试是这样的）
-ngx.log(ngx.INFO, "connected to websocket.")
+-- ngx.log(ngx.INFO, "connected to websocket.")
 local players = {}
 local player_count = 0
 for i=1,50 do
@@ -55,7 +55,7 @@ if not db then
     return
 end
 db:set_timeout(20000)
-ngx.log(ngx.INFO, "try to connect to mysql.")
+-- ngx.log(ngx.INFO, "try to connect to mysql.")
 local ok, err, errcode, sqlstate = db:connect{
     host = "127.0.0.1",
     port = 3306,
@@ -69,7 +69,7 @@ if not ok then
     ngx.log(ngx.ERR, "failed to connect: ", err, ": ", errcode, " ", sqlstate)
     return
 end
-ngx.log(ngx.INFO, "connected to mysql.")
+-- ngx.log(ngx.INFO, "connected to mysql.")
 
 local function querydatabase()
     -- 查询数据库,并将所有结果写入palyer[]中

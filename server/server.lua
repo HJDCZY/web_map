@@ -93,25 +93,46 @@ while true do
         -- 接收到客户端消息
         local msg = cjson.decode(data)
         -- ngx.log(ngx.INFO, "playername: ", msg.playername, "serverid", msg.playerserverid)
-
-        playerserverid = msg.playerserverid
-        if msg.playername ~= nil then 
-            -- 更新数据库，先查询serverid是否存在
-            local res, err, errcode, sqlstate = db:query("select * from players where serverid = " .. msg.playerserverid .. " and playername = '" .. msg.playername .. "'" )
-            if  not res or next(res) == nil then
-                -- 删除与serverid对应的记录
-                local res, err, errcode, sqlstate = db:query("delete from players where serverid = " .. msg.playerserverid)
-                -- 删除所有与playername对应的记录
-                local res, err, errcode, sqlstate = db:query("delete from players where playername = '" .. msg.playername .. "'")
-                -- 如果查询失败，说明数据库中没有这个serverid，创建新的记录
-                local res, err, errcode, sqlstate = db:query("insert into players (croodx, croody, croodz, speed, inplane, serverid, playername) values (" .. msg.croodx .. ", " .. msg.croody .. ", " .. msg.croodz .. ", " .. msg.speed .. ", " .. tostring(msg.inplane) .. ", " .. msg.playerserverid .. ", '" .. msg.playername .. "')")
-                if not res then
-                    ngx.log(ngx.ERR, "bad result: ", err, ": ", errcode, ": ", sqlstate, ".")
-                    return
+        if msg.type == playerdata then
+            playerserverid = msg.playerserverid
+            if msg.playername ~= nil then 
+                -- 更新数据库，先查询serverid是否存在
+                local res, err, errcode, sqlstate = db:query("select * from players where serverid = " .. msg.playerserverid .. " and playername = '" .. msg.playername .. "'" )
+                if  not res or next(res) == nil then
+                    -- 删除与serverid对应的记录
+                    local res, err, errcode, sqlstate = db:query("delete from players where serverid = " .. msg.playerserverid)
+                    -- 删除所有与playername对应的记录
+                    local res, err, errcode, sqlstate = db:query("delete from players where playername = '" .. msg.playername .. "'")
+                    -- 如果查询失败，说明数据库中没有这个serverid，创建新的记录
+                    local res, err, errcode, sqlstate = db:query("insert into players (croodx, croody, croodz, speed, inplane, serverid, playername) values (" .. msg.croodx .. ", " .. msg.croody .. ", " .. msg.croodz .. ", " .. msg.speed .. ", " .. tostring(msg.inplane) .. ", " .. msg.playerserverid .. ", '" .. msg.playername .. "')")
+                    if not res then
+                        ngx.log(ngx.ERR, "bad result: ", err, ": ", errcode, ": ", sqlstate, ".")
+                        return
+                    end
+                else
+                    -- 如果查询成功，说明数据库中有这个serverid，更新记录的坐标和速度
+                    local res, err, errcode, sqlstate = db:query("update players set croodx = " .. msg.croodx .. ", croody = " .. msg.croody .. ", croodz = " .. msg.croodz .. ", speed = " .. msg.speed .. ", inplane = " .. tostring(msg.inplane) .. " where serverid = " .. msg.playerserverid)
                 end
-            else
-                -- 如果查询成功，说明数据库中有这个serverid，更新记录的坐标和速度
-                local res, err, errcode, sqlstate = db:query("update players set croodx = " .. msg.croodx .. ", croody = " .. msg.croody .. ", croodz = " .. msg.croodz .. ", speed = " .. msg.speed .. ", inplane = " .. tostring(msg.inplane) .. " where serverid = " .. msg.playerserverid)
+            end
+        elseif msg.type == "checkothers" then
+            -- print ("checkothers")
+            local playerserverid = msg.playerserverids
+            local playerexists = msg.playerexists
+            -- print (cjson.encode(playerserverid))    
+            -- print (cjson.encode(playerexists))
+            -- 对于数组中的每个玩家，根据playerexists检查数据库
+            for i,serverid in pairs(playerserverid) do
+                
+                -- 删除数据库中不存在的玩家
+                -- 如果玩家不存在
+                if playerexists[i] == false then
+                    print (playerserverid[i] .. " not exists")
+                    local res, err, errcode, sqlstate = db:query("delete from players where serverid = " .. playerserverid[i])
+                end
+                --如果删除成功
+                if res then
+                    ngx.log(ngx.INFO, "delete player " .. playerserverid[i])
+                end
             end
         end
     end
