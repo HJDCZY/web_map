@@ -35,7 +35,18 @@ $(function(){
         connected = true;
     }
     ws.onmessage = function(e){
-        console.log(e.data);
+        // 接收到服务器查询玩家的请求
+        msg = JSON.parse(e.data);
+        // console.log("websocket message:"+msg);
+        var playsserveris = {};
+        for(var i in msg){
+            playsserveris[i] = msg[i];
+        }
+        // for (var i in playsserveris){
+        //     console.log("serverid:"+playsserveris[i])
+        // }
+        //做NUI回调，把数据传给LUA
+        fetch
     }
     ws.onclose = function(){
         console.log("websocket close");

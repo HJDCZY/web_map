@@ -1,4 +1,4 @@
-
+local connected = false
 -- 作为服务端接受fivem发来的websocket请求
 local server = require "resty.websocket.server"
 local cjson = require "cjson"
@@ -115,6 +115,36 @@ while true do
             end
         end
     end
+
+    -- 向客户端请求检查其他玩家
+
+    -- ngx.log (ngx.INFO, "checkothers thread started.")
+    
+    -- 查询所有玩家的serverid和并存入数组
+    local queryplayers = {}
+    local res, err, errcode, sqlstate = db:query("select serverid from players")
+    -- print (cjson.encode(res))
+    if not res then
+        ngx.log(ngx.ERR, "bad result: ", err, ": ", errcode, ": ", sqlstate, ".")
+        return
+    end
+    for i, row in ipairs(res) do
+        queryplayers[i] = row.serverid
+    end
+    -- ngx.log(ngx.INFO, "queryplayers: ", cjson.encode(queryplayers))
+    -- 请求客户端
+    -- print (cjson.encode(queryplayers))
+
+    local bytes, err = wb:send_text(cjson.encode(queryplayers))
+    -- print (cjson.encode(queryplayers))
+
+    if not bytes then
+        ngx.log(ngx.ERR, "failed to send text: ", err)
+        
+    end
+    
+
 end
 local res, err, errcode, sqlstate = db:query("delete from players where serverid = " .. playerserverid)
 db.close()
+
