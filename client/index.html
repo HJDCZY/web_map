@@ -1,24 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh_cn">
 <head>
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="cache-control" content="no-cache">
-    <meta http-equiv="expires" content="0">  
-    <title>Client</title>
+    <meta http-equiv="expires" content="0">
     <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
     <script src="script.js"></script>
-        
+    <title>洛城飞行大队-在线地图</title>
+    <style>
+        /* 背景图片 */
+        body {
+            background-image: url('https://hjdczy.top:3307/mydevice/image/01.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 顶部导航栏的样式 */
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.5); /* 半透明 */
+            background-color: #333;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1px 20px;
+            border-radius: 15px;
+            position: relative;
+            z-index: 1;
+            margin-top: 20px;
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
+        /* 导航链接样式 */
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 5px 10px;
+        }
+
+        .navbar h1 {
+            font-size: 22px;
+        }
+
+        /* 地图容器 */
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 60px); /* 调整高度，留出导航栏的空间 */
+            overflow: hidden; /* 防止地图内容溢出 */
+        }
+
+        /* 玩家名称标签 */
+        .player-label {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Client</h1>
+<!-- 导航栏 -->
+    <div class="navbar">
+        <h1>在线地图</h1>
+        <div>
+            <a href="https://hjdczy.top:333/">百科</a>
+            <a href="http://175.24.205.80:2333/status/serverinfo">状态</a>
         </div>
-        <!-- <script>
-
-                
-
-        </script> -->
     </div>
-        
+
+    <!-- 地图容器 -->
+    <div class="map-container" id="mapContainer">
+        <!-- 玩家名称标签将通过JavaScript动态添加 -->
+    </div>
+    <script src="script.js"></script>
+
+</body>
 </html>
