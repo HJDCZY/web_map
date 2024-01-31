@@ -60,13 +60,47 @@ if not ok then
 end
 -- ngx.log(ngx.INFO, "connected to mysql.")
 
+-- 向客户端请求检查其他玩家，只查一次
+
+-- ngx.log (ngx.INFO, "checkothers thread started.")
+
+-- 查询所有玩家的serverid和并存入数组
+local queryplayers = {}
+local res, err, errcode, sqlstate = db:query("select serverid from players")
+-- print (cjson.encode(res))
+if not res then
+    ngx.log(ngx.ERR, "bad result: ", err, ": ", errcode, ": ", sqlstate, ".")
+    return
+end
+for i, row in ipairs(res) do
+    queryplayers[i] = row.serverid
+end
+-- ngx.log(ngx.INFO, "queryplayers: ", cjson.encode(queryplayers))
+-- 请求客户端
+-- print (cjson.encode(queryplayers))
+
+local bytes, err = wb:send_text(cjson.encode(queryplayers))
+-- print (cjson.encode(queryplayers))
+
+if not bytes then
+    ngx.log(ngx.ERR, "failed to send text: ", err)
+    
+end
+
 
 -- 监听客户端消息
 while true do
     local data, typ, err = wb:recv_frame()
     if wb.fatal then
         -- ngx.log(ngx.ERR, "failed to receive frame: ", err)
-        return ngx.exit(444)
+        -- 主动删除玩家
+        if playerserverid ~= nil then
+            local res, err, errcode, sqlstate = db:query("delete from players where serverid = " .. playerserverid)
+            return ngx.exit(444)
+        elseif playername ~= nil then
+            local res, err, errcode, sqlstate = db:query("delete from players where playername = '" .. playername .. "'")
+            return ngx.exit(444)
+        end
     end
     if not data then
         local bytes, err = wb:send_ping()
@@ -129,43 +163,7 @@ while true do
                     print (playerserverid[i] .. " not exists")
                     local res, err, errcode, sqlstate = db:query("delete from players where serverid = " .. playerserverid[i])
                 end
-                --如果删除成功
-                if res then
-                    ngx.log(ngx.INFO, "delete player " .. playerserverid[i])
-                end
             end
         end
     end
-
-    -- 向客户端请求检查其他玩家
-
-    -- ngx.log (ngx.INFO, "checkothers thread started.")
-    
-    -- 查询所有玩家的serverid和并存入数组
-    local queryplayers = {}
-    local res, err, errcode, sqlstate = db:query("select serverid from players")
-    -- print (cjson.encode(res))
-    if not res then
-        ngx.log(ngx.ERR, "bad result: ", err, ": ", errcode, ": ", sqlstate, ".")
-        return
-    end
-    for i, row in ipairs(res) do
-        queryplayers[i] = row.serverid
-    end
-    -- ngx.log(ngx.INFO, "queryplayers: ", cjson.encode(queryplayers))
-    -- 请求客户端
-    -- print (cjson.encode(queryplayers))
-
-    local bytes, err = wb:send_text(cjson.encode(queryplayers))
-    -- print (cjson.encode(queryplayers))
-
-    if not bytes then
-        ngx.log(ngx.ERR, "failed to send text: ", err)
-        
-    end
-    
-
 end
-local res, err, errcode, sqlstate = db:query("delete from players where serverid = " .. playerserverid)
-db.close()
-
