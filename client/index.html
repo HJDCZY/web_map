@@ -56,13 +56,32 @@
             overflow: hidden; /* 防止地图内容溢出 */
         }
 
-        /* 玩家名称标签 */
+        /* 点 */
+        .player-dot {
+            position: absolute;
+            background-color: blue; /* 可以自定义颜色 */
+            border-radius: 50%;
+            width: 10px; /* 调整点的大小 */
+            height: 10px;
+            z-index: 2;
+        }
+
+        /* 玩家 */
         .player-label {
             position: absolute;
             background-color: rgba(0, 0, 0, 0.7);
             color: #fff;
             padding: 5px;
             border-radius: 5px;
+            z-index: 1;
+        }
+
+        /* 连接线 */
+        .connecting-line {
+            position: absolute;
+            border: 1px solid blue;
+            width: 1px;
+            z-index: 0;
         }
 
         .in-plane {

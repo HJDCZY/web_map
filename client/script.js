@@ -29,6 +29,19 @@ websocket.onmessage = function (evt) {
             "vehiclemodel: " + player.vehiclemodel + "\n"
         );
 
+        // 创建玩家位置点
+        var playerDot = document.createElement('div');
+        playerDot.className = 'player-dot';
+
+        var leftPercentage = mapCoordinateToPercentage(player.croodx, -10000, 10000);
+        var topPercentage = mapCoordinateToPercentage(player.croody, -10000, 10000);
+
+        var invertedTopPercentage = 100 - topPercentage;
+
+        // 设置玩家位置点的位置
+        playerDot.style.left = leftPercentage + '%';
+        playerDot.style.top = invertedTopPercentage + '%';
+
         // 创建玩家名称标签
         var playerLabel = document.createElement('div');
         playerLabel.className = 'player-label';
@@ -39,20 +52,24 @@ websocket.onmessage = function (evt) {
             playerLabel.classList.add('in-plane');
         }
 
-        // 计算百分比
-        var leftPercentage = mapCoordinateToPercentage(player.croodx, -10000, 10000);
-        var topPercentage = mapCoordinateToPercentage(player.croody, -10000, 10000);
-
-        // 反转Y轴
-        var invertedTopPercentage = 100 - topPercentage;
-
         // 设置玩家名称标签的位置
         playerLabel.style.left = leftPercentage + '%';
-        playerLabel.style.top = invertedTopPercentage + '%';
+        playerLabel.style.top = invertedTopPercentage - 10 + '%'; // 将标签上移一些，以避免与点重叠
 
+        // 创建连接线
+        var line = document.createElement('div');
+        line.className = 'connecting-line';
 
-        // 将玩家名称标签添加到地图容器中
+        // 设置连接线的位置
+        line.style.left = leftPercentage + '%';
+        line.style.top = (invertedTopPercentage - 6) + '%';
+        line.style.height = '40px'; // 调整线的长度，根据需要调整
+
+        // 添加到地图中
+        mapContainer.appendChild(playerDot);
         mapContainer.appendChild(playerLabel);
+        mapContainer.appendChild(line);
+
     });
 };
 
