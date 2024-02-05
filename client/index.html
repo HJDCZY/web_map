@@ -60,15 +60,23 @@
         }
 
         /* 玩家 */
-        .player-label {
+        .player-label, .player-point {
             position: absolute;
+            z-index: 2; /* 确保标签在点和线之上 */
+        }
+
+        .player-label {
             background-color: rgba(0, 0, 0, 0.7);
             color: #fff;
             padding: 5px;
             border-radius: 5px;
-            z-index: 1;
-            
+        }
 
+        .player-point {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #000000;
         }
 
         .in-plane {
