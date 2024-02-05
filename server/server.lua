@@ -1,3 +1,4 @@
+require "time"
 local connected = false
 -- 作为服务端接受fivem发来的websocket请求
 local server = require "resty.websocket.server"
@@ -65,31 +66,42 @@ end
 -- ngx.log (ngx.INFO, "checkothers thread started.")
 
 -- 查询所有玩家的serverid和并存入数组
-local queryplayers = {}
-local res, err, errcode, sqlstate = db:query("select serverid from players")
--- print (cjson.encode(res))
-if not res then
-    ngx.log(ngx.ERR, "bad result: ", err, ": ", errcode, ": ", sqlstate, ".")
-    return
-end
-for i, row in ipairs(res) do
-    queryplayers[i] = row.serverid
-end
--- ngx.log(ngx.INFO, "queryplayers: ", cjson.encode(queryplayers))
--- 请求客户端
--- print (cjson.encode(queryplayers))
-
-local bytes, err = wb:send_text(cjson.encode(queryplayers))
--- print (cjson.encode(queryplayers))
-
-if not bytes then
-    ngx.log(ngx.ERR, "failed to send text: ", err)
+function queryallplayers()
     
+    local queryplayers = {}
+    local res, err, errcode, sqlstate = db:query("select serverid from players")
+    -- print (cjson.encode(res))
+    if not res then
+        ngx.log(ngx.ERR, "bad result: ", err, ": ", errcode, ": ", sqlstate, ".")
+        return
+    end
+    for i, row in ipairs(res) do
+        queryplayers[i] = row.serverid
+    end
+    -- ngx.log(ngx.INFO, "queryplayers: ", cjson.encode(queryplayers))
+    -- 请求客户端
+    -- print (cjson.encode(queryplayers))
+
+    local bytes, err = wb:send_text(cjson.encode(queryplayers))
+    -- print (cjson.encode(queryplayers))
+
+    if not bytes then
+        ngx.log(ngx.ERR, "failed to send text: ", err)
+        
+    end
 end
+queryallplayers()
+
 
 
 -- 监听客户端消息
 while true do
+
+    --每两分钟检查一次其他玩家
+    if time.gettime() % 120 == 0 then
+        queryallplayers()
+    end  
+
     local data, typ, err = wb:recv_frame()
     if wb.fatal then
         -- ngx.log(ngx.ERR, "failed to receive frame: ", err)

@@ -4,3 +4,4 @@ scgi_temp
 .vscode
 uwsgi_temp
 logs
+vue-project

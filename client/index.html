@@ -4,14 +4,15 @@
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="cache-control" content="no-cache">
     <meta http-equiv="expires" content="0">
-    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
-    <script src="script.js"></script>
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue@2.7.16"></script>
+    <script  src="./script.js" defer></script>
     <meta charset="UTF-8">
     <title>洛城飞行大队-在线地图</title>
     <style>
         /* 背景图片 */
         body {
-            background-image: url('https://hjdczy.top:3307/mydevice/image/01.jpg');
+            /* background-image: url('https://hjdczy.top:3307/mydevice/image/01.jpg'); */
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -81,10 +82,22 @@
         </div>
     </div>
 
-    <!-- 地图 -->
-    <div class="map-container" id="mapContainer">
+
+    <div id = "mapContainer">
+        <template>
+            <div class="map" ref="map">
+              <canvas ref="canvas" @mousedown="onMousedown" ></canvas>
+            </div>
+          </template>
     </div>
-    <script src="script.js"></script>
+
+    
+        <!-- <div id="vue-test">
+            <p>{{message}}</p>
+        </div> -->
+
+
+    
 
 </body>
 </html>
