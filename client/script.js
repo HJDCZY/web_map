@@ -13,37 +13,64 @@ websocket.onerror = function (evt) {
 // import Mouse from './Mouse.vue'
 var coord_k = 1.806 //原坐标1.806代表地图1像素
 var images = {};
+let zoom = 0;
 
-var mapContainer = document.getElementById('mapContainer'); // 获取地图容器
-var center = [0, 0];
-websocket.onmessage = function (evt) {
-    var playersData = JSON.parse(evt.data);
+function getimagepx (x,y){
+    //从游戏坐标转换到图片坐标
 
-    // 清空地图容器，以便重新添加玩家位置
-    mapContainer.innerHTML = '';
-
-    playersData.forEach(function(player, i) {
-        
     //原图片为12000*12000像素
     //游戏坐标原点位于地图的6506,6277
 
     //玩家在地图中的像素 x 为 玩家X/1.806 + 6506
     //对于GTA，右上为XY正方向
-    //玩家在地图中的像素 y 为 -6277 + 玩家Y/1.806
+    //玩家在地图中的像素 y 为 6277 + 玩家Y/1.806
+    //地图左上为0，右下为正
+    if (zoom == 3) {
+        return [x/coord_k + 6506, (0-y)/coord_k+6277];
+    }
+    else if (zoom == 2) {
+        return [(x/coord_k + 6506)/2, (6277 + (0-y)/coord_k)/2];
+    }
+    else if (zoom == 1) {
+        return [(x/coord_k + 6506)/4, (6277 + (0-y)/coord_k)/4];
+    }
+    else {
+        return [(x/coord_k + 6506)/8, (6277 + (0-y)/coord_k)/8];
+    }
 
-    player.imagex = player.croodx / coord_k + 6506;
-    player.imagey = -6277 + player.croody / coord_k;
+}
 
-        console.log(
-            "Player Number: " + i + "\n" +
-            "Server ID: " + player.serverid + "\n" +
-            "Player Name: " + player.playername + "\n" +
-            "Coordinates (X, Y, Z): " + player.croodx + ", " + player.croody + ", " + player.croodz + "\n" +
-            "In Plane: " + (player.inplane === 1 ? "Yes" : "No") + "\n" +
-            "Speed: " + player.speed + "\n"+
-            "heading: " + player.heading + "\n"+
-            "vehiclemodel: " + player.vehiclemodel + "\n"
-        );
+var playersData = [];
+function getgamecoord (x,y){
+    return [(x - 6506) * coord_k, -((y - 6277) * coord_k)];
+}
+
+var mapContainer = document.getElementById('mapContainer'); // 获取地图容器
+var center = [0, 0];
+websocket.onmessage = function (evt) {
+    playersData = JSON.parse(evt.data);
+
+    // 清空地图容器，以便重新添加玩家位置
+    
+};
+
+//设置定时任务
+setInterval(function () {
+    mapContainer.innerHTML = '';
+
+    playersData.forEach(function(player, i) {
+        
+
+        // console.log(
+        //     "Player Number: " + i + "\n" +
+        //     "Server ID: " + player.serverid + "\n" +
+        //     "Player Name: " + player.playername + "\n" +
+        //     "Coordinates (X, Y, Z): " + player.croodx + ", " + player.croody + ", " + player.croodz + "\n" +
+        //     "In Plane: " + (player.inplane === 1 ? "Yes" : "No") + "\n" +
+        //     "Speed: " + player.speed + "\n"+
+        //     "heading: " + player.heading + "\n"+
+        //     "vehiclemodel: " + player.vehiclemodel + "\n"
+        // );
 
         // 创建玩家名称标签
         var playerLabel = document.createElement('div');
@@ -56,20 +83,31 @@ websocket.onmessage = function (evt) {
         }
 
         // 计算百分比
-        var leftPercentage = mapCoordinateToPercentage(player.croodx, -10000, 10000);
-        var topPercentage = mapCoordinateToPercentage(player.croody, -10000, 10000);
+        // var leftPercentage = mapCoordinateToPercentage(player.croodx, -10000, 10000);
+        // var topPercentage = mapCoordinateToPercentage(player.croody, -10000, 10000);
 
+        //计算像素坐标
+        var pxcoord = getimagepx(player.croodx, player.croody);
+        //显示
+        // console.log(pxcoord);   
+        var leftpxcoord = pxcoord[0] - center[0];
+        var toppxcoord = pxcoord[1] - center[1];
         // 反转Y轴
-        var invertedTopPercentage = 100 - topPercentage;
+        // var invertedTopPercentage = 100 - topPercentage;
+        // console.log(window.innerWidth, window.innerHeight);
+        // console.log(player.playername, leftpxcoord, toppxcoord);
+        if (leftpxcoord > 0 && leftpxcoord < window.innerWidth && toppxcoord > 0 && toppxcoord < window.innerHeight) {
+            // 设置玩家名称标签的位置
+            playerLabel.style.left = leftpxcoord + 'px';
+            playerLabel.style.top = toppxcoord + 'px';
+            // console.log(player.playername, leftpxcoord, toppxcoord);
+            // 将玩家名称标签添加到地图容器中
+            mapContainer.appendChild(playerLabel);
+        }
 
-        // 设置玩家名称标签的位置
-        playerLabel.style.left = leftPercentage + '%';
-        playerLabel.style.top = invertedTopPercentage + '%';
-
-        // 将玩家名称标签添加到地图容器中
-        mapContainer.appendChild(playerLabel);
     });
-};
+}
+, 5);
 
 // 将地图坐标映射到百分比
 function mapCoordinateToPercentage(coordinate, min, max) {
@@ -115,7 +153,7 @@ class imageCache {
             this.render();
         }
         image.onerror = () => {
-            console.log('error');
+            // console.log('error');
             //采用默认图片
             let defaultImage = new Image();
             defaultImage.src = 'backup.png';
@@ -148,12 +186,22 @@ new Vue({
         window.addEventListener("mousemove", this.onMousemove);
         window.addEventListener("mouseup", this.onMouseup);
         window.addEventListener("mousewheel", this.onMousewheel);
+        //按H回中
+        window.addEventListener("keydown", (e) => {
+            if (e.key === 'h') {
+                center = [0, 0];
+                this.zoom = 0;
+                zoom = this.zoom;
+                this.clear();
+                this.reload(0,0);
+            }
+        });
         let canvas = this.$refs.canvas;
-        canvas.width = window.screen.width;
-        canvas.height = window.screen.height;   
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
         let ctx = canvas.getContext('2d');
 
-        let zoom = 1;
+
         //获取浏览器像素再除以图片像素1500
         let rownum = Math.ceil( window.screen.height / 1500);
         let colnum = Math.ceil( window.screen.width / 1500);
@@ -179,7 +227,7 @@ new Vue({
     data(){
         return {
             isMousedown: false,
-            zoom: 1,
+            zoom: 0,
             maxzoom : 3,
             minzoom : 0,
             center: [0, 0]  ,
@@ -193,6 +241,7 @@ new Vue({
                 // console.log(e);
                 this.isMousedown = true;
             }
+            // console.log(center[0], center[1]);
         },
 
         // 鼠标移动
@@ -227,21 +276,64 @@ new Vue({
         },
 
         onMousewheel(e) {
+            // console.log(e.clientX, e.clientY);
+            // console.log(center);
+            mousex = center[0] + e.clientX;
+            mousey = center[1] + e.clientY;
+            // console.log(mousex, mousey);
+            // console.log(getgamecoord(mousex, mousey));
+            // var mousegamecoord = getgamecoord(mousex, mousey);
+            // var mouselater = getimagepx(mousegamecoord[0], mousegamecoord[1]);
             if (e.deltaY > 0) {
                 // 层级变小
                 if (this.zoom > this.minzoom) {
                     this.zoom--;
+                    //保持鼠标位置不变
+                    mousex = mousex /2;
+                    mousey = mousey /2;
+                    center[0] = mousex - e.clientX;
+                    center[1] = mousey - e.clientY;
                     zoom = this.zoom;
                 }
             } else {
                 // 层级变大
                 if (this.zoom < this.maxzoom) {
+                    mousex = mousex *2;
+                    mousey = mousey *2;
+                    center[0] = mousex - e.clientX;
+                    center[1] = mousey - e.clientY;
                     this.zoom++;
                     zoom = this.zoom;
                 }
             }
+            this.clear();
             this.reload(0,0);
         },
+        // onMousewheel(e) {
+        //     // 计算鼠标位置相对于地图的坐标
+        //     let mouseX = e.clientX - this.center[0];
+        //     let mouseY = e.clientY - this.center[1];
+
+        //     if (e.deltaY > 0) {
+        //         // 层级变小
+        //         if (this.zoom > this.minzoom) {
+        //             this.zoom--;
+        //             zoom = this.zoom;
+        //         }
+        //     } else {
+        //         // 层级变大
+        //         if (this.zoom < this.maxzoom) {
+        //             this.zoom++;
+        //             zoom = this.zoom;
+        //         }
+        //     }
+
+        //     // 在缩放地图后，调整地图的位置以保持鼠标位置相对于地图的坐标不变
+        //     this.center[0] = e.clientX - mouseX / this.zoom;
+        //     this.center[1] = e.clientY - mouseY / this.zoom;
+
+        //     this.reload(0,0);
+        // },
 
         reload(x,y){
             //左上角是x,y
@@ -294,5 +386,5 @@ new Vue({
 
 
 
-}).$mount('#mapContainer');
+}).$mount('#mapimage');
 

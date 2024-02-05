@@ -115,8 +115,8 @@ while true do
         ngx.log(ngx.ERR, "failed to send data")
         return ngx.exit(444)
     end
-    -- 一秒钟发送一次数据
-    ngx.sleep(1)
+    -- 0.5秒钟发送一次数据
+    ngx.sleep(0.25)
 
     
 end

@@ -1,4 +1,4 @@
-require "time"
+
 local connected = false
 -- 作为服务端接受fivem发来的websocket请求
 local server = require "resty.websocket.server"
@@ -98,7 +98,7 @@ queryallplayers()
 while true do
 
     --每两分钟检查一次其他玩家
-    if time.gettime() % 120 == 0 then
+    if os.time() % 120 == 0 then
         queryallplayers()
     end  
 

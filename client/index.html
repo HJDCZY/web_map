@@ -18,6 +18,7 @@
             background-attachment: fixed;
             margin: 0;
             padding: 0;
+            overflow: hidden;
         }
 
         /* 顶部导航栏的样式 */
@@ -30,7 +31,7 @@
             align-items: center;
             padding: 1px 20px;
             border-radius: 15px;
-            position: relative;
+            position: absolute;
             z-index: 1;
             margin-top: 20px;
             margin-left: 20px;
@@ -51,10 +52,11 @@
 
         /* 地图容器 */
         .map-container {
-            position: relative;
+            position: absolute;
             width: 100%;
-            height: calc(100vh - 60px); /* 调整高度，留出导航栏的空间 */
+            height: 100%;
             overflow: hidden; /* 防止地图内容溢出 */
+            pointer-events: none; /* 防止地图内容阻挡鼠标事件 */
         }
 
         /* 玩家 */
@@ -65,31 +67,37 @@
             padding: 5px;
             border-radius: 5px;
             z-index: 1;
+            
+
         }
 
         .in-plane {
-            background-color: rgba(0, 191, 255, 0.5);
+            background-color: rgba(247, 53, 205, 0.623);
         }
     </style>
 </head>
 <body>
 <!-- 导航栏 -->
     <div class="navbar">
-        <h1>在线地图</h1>
+        <h1>在线地图(按H回中)</h1>
         <div>
             <a href="https://hjdczy.top:333/">百科</a>
             <a href="http://175.24.205.80:2333/status/serverinfo">状态</a>
         </div>
     </div>
-
-
-    <div id = "mapContainer">
+    <div class="map-container" id="mapContainer">
+    </div>
+    
+    <div id = "mapimage">
         <template>
             <div class="map" ref="map">
-              <canvas ref="canvas" @mousedown="onMousedown" ></canvas>
+            <canvas ref="canvas" @mousedown="onMousedown" ></canvas>
             </div>
-          </template>
+            <!-- playerlabels -->
+            
+        </template>
     </div>
+
 
     
         <!-- <div id="vue-test">

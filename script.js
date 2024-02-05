@@ -113,7 +113,7 @@ $(function(){
             else{
                 clearInterval(senddataid);
             }
-        },1000);
+        },250);
     }
     connectwebsocket();
     

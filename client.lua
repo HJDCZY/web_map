@@ -4,7 +4,7 @@ Citizen.CreateThread(function ()
     while true do
         local playerped = GetPlayerPed(-1)
         local playerserverid = GetPlayerServerId(PlayerId())
-        Citizen.Wait(1000)
+        Citizen.Wait(250)
         -- 获得玩家坐标
         local crood = GetEntityCoords(playerped)
         local croodx = crood.x
