@@ -60,58 +60,61 @@ websocket.onmessage = function (evt) {
 
 //设置定时任务
 setInterval(function () {
-    mapContainer.innerHTML = '';
+    mapContainer.innerHTML = ''; // 清空地图容器以便重新绘制
 
-    playersData.forEach(function(player, i) {
-        
+    playersData.forEach(function(player) {
+        var playerPoint = document.createElement('div');
+        playerPoint.className = 'player-point';
 
-        // console.log(
-        //     "Player Number: " + i + "\n" +
-        //     "Server ID: " + player.serverid + "\n" +
-        //     "Player Name: " + player.playername + "\n" +
-        //     "Coordinates (X, Y, Z): " + player.croodx + ", " + player.croody + ", " + player.croodz + "\n" +
-        //     "In Plane: " + (player.inplane === 1 ? "Yes" : "No") + "\n" +
-        //     "Speed: " + player.speed + "\n"+
-        //     "heading: " + player.heading + "\n"+
-        //     "vehiclemodel: " + player.vehiclemodel + "\n"
-        // );
-
-        // 创建玩家名称标签
         var playerLabel = document.createElement('div');
         playerLabel.className = 'player-label';
         playerLabel.innerHTML = player.playername;
 
-        // 在飞机上
         if (player.inplane === 1) {
             playerLabel.classList.add('in-plane');
         }
 
-        // 计算百分比
-        // var leftPercentage = mapCoordinateToPercentage(player.croodx, -10000, 10000);
-        // var topPercentage = mapCoordinateToPercentage(player.croody, -10000, 10000);
-
-        //计算像素坐标
         var pxcoord = getimagepx(player.croodx, player.croody);
-        //显示
-        // console.log(pxcoord);   
         var leftpxcoord = pxcoord[0] - center[0];
         var toppxcoord = pxcoord[1] - center[1];
-        // 反转Y轴
-        // var invertedTopPercentage = 100 - topPercentage;
-        // console.log(window.innerWidth, window.innerHeight);
-        // console.log(player.playername, leftpxcoord, toppxcoord);
-        if (leftpxcoord > 0 && leftpxcoord < window.innerWidth && toppxcoord > 0 && toppxcoord < window.innerHeight) {
-            // 设置玩家名称标签的位置
-            playerLabel.style.left = leftpxcoord + 'px';
-            playerLabel.style.top = toppxcoord + 'px';
-            // console.log(player.playername, leftpxcoord, toppxcoord);
-            // 将玩家名称标签添加到地图容器中
-            mapContainer.appendChild(playerLabel);
-        }
 
+        if (leftpxcoord > 0 && leftpxcoord < window.innerWidth && toppxcoord > 0 && toppxcoord < window.innerHeight) {
+            // 设置点的位置
+            playerPoint.style.left = leftpxcoord + 'px';
+            playerPoint.style.top = toppxcoord + 'px';
+
+            // 标签位置调整
+            var labelOffsetX = 80; // X轴偏移量
+            var labelOffsetY = -100; // Y轴偏移量
+            playerLabel.style.left = (leftpxcoord + labelOffsetX) + 'px'; // 标签右移
+            playerLabel.style.top = (toppxcoord + labelOffsetY) + 'px'; // 标签上移
+
+            mapContainer.appendChild(playerPoint);
+            mapContainer.appendChild(playerLabel);
+
+            // SVG 绘制连接线
+            var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.style.position = "absolute";
+            svg.style.left = "0px";
+            svg.style.top = "0px";
+            svg.style.width = "100%";
+            svg.style.height = "100%";
+            svg.style.zIndex = "0";
+
+            var line = document.createElementNS('http://www.w3.org/2000/svg','line');
+
+            line.setAttribute('x1', leftpxcoord + 12);
+            line.setAttribute('y1', toppxcoord - 3);
+            line.setAttribute('x2', leftpxcoord + labelOffsetX);
+            line.setAttribute('y2', toppxcoord + labelOffsetY + playerLabel.offsetHeight); // 标签的下方作为终点
+            line.setAttribute('stroke', '#000000');
+            line.setAttribute('stroke-width', '2');
+
+            svg.appendChild(line);
+            mapContainer.appendChild(svg);
+        }
     });
-}
-, 10);
+}, 5); // 5秒刷新一次，请检查刷新频率是否合理
 
 // 将地图坐标映射到百分比
 function mapCoordinateToPercentage(coordinate, min, max) {
