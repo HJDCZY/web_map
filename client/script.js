@@ -115,6 +115,8 @@ setInterval(function () {
         }
     });
 }, 5); // 5秒刷新一次，请检查刷新频率是否合理
+//这里是5毫秒，因为需要在用户移动图片时，快速实时更新玩家位置，否则用户移动时将会有较大延迟
+//这里的5ms只是为了实时更新玩家位置，没有网络请求，压力在用户端，不会对服务器造成压力
 
 // 将地图坐标映射到百分比
 function mapCoordinateToPercentage(coordinate, min, max) {
