@@ -25,17 +25,18 @@ function getimagepx (x,y){
     //对于GTA，右上为XY正方向
     //玩家在地图中的像素 y 为 6277 + 玩家Y/1.806
     //地图左上为0，右下为正
+    //经修正，修正为6502,6275
     if (zoom == 3) {
-        return [x/coord_k + 6506, (0-y)/coord_k+6277];
+        return [x/coord_k + 6502, (0-y)/coord_k+6275];
     }
     else if (zoom == 2) {
-        return [(x/coord_k + 6506)/2, (6277 + (0-y)/coord_k)/2];
+        return [(x/coord_k + 6502)/2, (6277 + (0-y)/coord_k)/2];
     }
     else if (zoom == 1) {
-        return [(x/coord_k + 6506)/4, (6277 + (0-y)/coord_k)/4];
+        return [(x/coord_k + 6502)/4, (6277 + (0-y)/coord_k)/4];
     }
     else {
-        return [(x/coord_k + 6506)/8, (6277 + (0-y)/coord_k)/8];
+        return [(x/coord_k + 6502)/8, (6277 + (0-y)/coord_k)/8];
     }
 
 }
