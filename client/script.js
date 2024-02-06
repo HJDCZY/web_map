@@ -48,8 +48,12 @@ function getgamecoord (x,y){
 var mapContainer = document.getElementById('mapContainer'); // 获取地图容器
 var center = [0, 0];
 websocket.onmessage = function (evt) {
-    playersData = JSON.parse(evt.data);
+    let data = JSON.parse(evt.data);
+    if (!Array.isArray(data)) {
+        data = [data];
+    }
 
+    playersData = data;
     // 清空地图容器，以便重新添加玩家位置
     
 };
@@ -107,7 +111,7 @@ setInterval(function () {
 
     });
 }
-, 5);
+, 10);
 
 // 将地图坐标映射到百分比
 function mapCoordinateToPercentage(coordinate, min, max) {
