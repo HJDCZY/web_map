@@ -87,7 +87,7 @@ setInterval(function () {
 
         if (player.inplane === 1) {
             playerLabel.classList.add('in-plane');
-            playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ')'+ Math.floor(player.croodz);
+            playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ Math.floor(player.croodz* 3.2808399);
         }
 
         var pxcoord = getimagepx(player.croodx, player.croody);
@@ -138,6 +138,41 @@ setInterval(function () {
             svg.appendChild(line);
             mapContainer.appendChild(svg);
 
+            //绘制速度预计线
+            if (player.inplane === 1) {
+                var speedsvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                speedsvg.style.position = "absolute";
+                speedsvg.style.left = "0px";
+                speedsvg.style.top = "0px";
+                speedsvg.style.width = "100%";
+                speedsvg.style.height = "100%";
+                speedsvg.style.zIndex = "0";
+
+                var speedline = document.createElementNS('http://www.w3.org/2000/svg','line');
+    
+                //根据玩家的朝向和速度，计算画线的终点
+                // console.log(360-player.heading);
+                heading = 360 - player.heading;
+                //根据速度计算x分量
+                // console.log(player.speed);
+                // console.log(3-zoom);
+                var speedx = (Math.sin(heading * Math.PI / 180) * player.speed)/(Math.pow(2,3-zoom));
+                //根据速度计算y分量
+                var speedy = -((Math.cos(heading * Math.PI / 180) * player.speed)/(Math.pow(2,3-zoom)));
+                // console.log(speedx, speedy);
+
+                
+                //绘制
+                speedline.setAttribute('x1', leftpxcoord+3);
+                speedline.setAttribute('y1', toppxcoord +3);
+                speedline.setAttribute('x2', leftpxcoord + speedx);
+                speedline.setAttribute('y2', toppxcoord + speedy);
+                speedline.setAttribute('stroke', '#FF0000');
+                speedline.setAttribute('stroke-width', '2');
+
+                speedsvg.appendChild(speedline);
+                mapContainer.appendChild(speedsvg);
+            }
             //鼠标可以拖动标签
             // playerLabel.onmousedown = function (e) {
 
@@ -159,7 +194,7 @@ document.onmousedown = function (e) {
     // 检查鼠标点击的元素
     if (e.target.className === 'player-label' || e.target.className === 'player-label in-plane') {
         // 如果点击的是玩家标签，触发玩家标签的拖动事件
-        console.log('label move');
+        // console.log('label move');
         var playerLabel = e.target;
         document.onmousemove = function (e) {
             // 根据鼠标拖动更新labelsoffset

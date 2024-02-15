@@ -11,6 +11,11 @@ Citizen.CreateThread(function ()
         local croody = crood.y
         local croodz = crood.z
         -- print (croodx, croody, croodz)
+        -- local retval , speedx, speedy =GetPedCurrentMovementSpeed(playerped)
+        -- -- 仅计算水平速度
+        -- print (speedx, speedy)
+        -- local speed = math.sqrt(speedx*speedx + speedy*speedy)
+        -- print (speed)
         local speed = GetEntitySpeed(playerped)
         local speedinknot = math.floor(speed * 1.9438444924574)
         -- 如果玩家在飞机上
