@@ -1,9 +1,13 @@
 var websocket = new WebSocket("wss://hjdczy.top:2345/front");
 websocket.onopen = function (evt) {
     console.log("Connected to WebSocket server.");
+    //使得id = sockettimedout隐藏
+    document.getElementById('sockettimedout').style.display = 'none';
 };
 websocket.onclose = function (evt) {
     console.log("Disconnected");
+    //使得id = sockettimedout显示
+    document.getElementById('sockettimedout').style.display = 'block';
 };
 websocket.onerror = function (evt) {
     console.log("Error to connect to WebSocket server");
@@ -42,6 +46,7 @@ function getimagepx (x,y){
 }
 
 var playersData = [];
+var labelsoffset = {}; 
 function getgamecoord (x,y){
     return [(x - 6506) * coord_k, -((y - 6277) * coord_k)];
 }
@@ -64,15 +69,25 @@ setInterval(function () {
     mapContainer.innerHTML = ''; // 清空地图容器以便重新绘制
 
     playersData.forEach(function(player) {
+        
         var playerPoint = document.createElement('div');
         playerPoint.className = 'player-point';
 
         var playerLabel = document.createElement('div');
         playerLabel.className = 'player-label';
-        playerLabel.innerHTML = player.playername;
+        //给予id，后面拖动好定位
+        playerLabel.id = player.playername;
+        if (player.vehiclemodel != 'CARNOTFOUND' && player.inplane != 1) {
+            playerLabel.innerHTML = player.playername + '(' + player.vehiclemodel + ')' ;  
+        }
+        else {
+            playerLabel.innerHTML = player.playername ;
+        }
+        playerLabel.style.userSelect = 'none';
 
         if (player.inplane === 1) {
             playerLabel.classList.add('in-plane');
+            playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ')'+ Math.floor(player.croodz);
         }
 
         var pxcoord = getimagepx(player.croodx, player.croody);
@@ -85,8 +100,17 @@ setInterval(function () {
             playerPoint.style.top = toppxcoord + 'px';
 
             // 标签位置调整
-            var labelOffsetX = 80; // X轴偏移量
-            var labelOffsetY = -100; // Y轴偏移量
+            // 如果没有设置偏移量，则默认为80, -100
+            if (!labelsoffset[player.playername]) {
+                labelsoffset[player.playername] = {
+                    xoffset: 80,
+                    yoffset: -100
+                };
+            }
+            // playersData.labelOffsetX = 80; // X轴偏移量
+            // playersData.labelOffsetY = -100; // Y轴偏移量
+            var labelOffsetX = labelsoffset[player.playername].xoffset;
+            var labelOffsetY = labelsoffset[player.playername].yoffset;
             playerLabel.style.left = (leftpxcoord + labelOffsetX) + 'px'; // 标签右移
             playerLabel.style.top = (toppxcoord + labelOffsetY) + 'px'; // 标签上移
 
@@ -104,20 +128,61 @@ setInterval(function () {
 
             var line = document.createElementNS('http://www.w3.org/2000/svg','line');
 
-            line.setAttribute('x1', leftpxcoord + 12);
-            line.setAttribute('y1', toppxcoord - 3);
-            line.setAttribute('x2', leftpxcoord + labelOffsetX);
-            line.setAttribute('y2', toppxcoord + labelOffsetY + playerLabel.offsetHeight); // 标签的下方作为终点
+            line.setAttribute('x1', leftpxcoord+3);
+            line.setAttribute('y1', toppxcoord +3);
+            line.setAttribute('x2', leftpxcoord + labelOffsetX + playerLabel.offsetWidth / 2);
+            line.setAttribute('y2', toppxcoord + labelOffsetY  + playerLabel.offsetHeight / 2);
             line.setAttribute('stroke', '#000000');
             line.setAttribute('stroke-width', '2');
 
             svg.appendChild(line);
             mapContainer.appendChild(svg);
+
+            //鼠标可以拖动标签
+            // playerLabel.onmousedown = function (e) {
+
+            //     document.onmousemove = function (e) {
+            //         // 根据鼠标拖动更新labelsoffset
+            //         labelsoffset[player.playername].xoffset += e.movementX ;
+            //         labelsoffset[player.playername].yoffset += e.movementY;
+            //     }
+            //     document.onmouseup = function () {
+            //         document.onmousemove = null;
+            //         document.onmouseup = null;
+            //     }
+            // }
         }
     });
-}, 5); // 5秒刷新一次，请检查刷新频率是否合理
-//这里是5毫秒，因为需要在用户移动图片时，快速实时更新玩家位置，否则用户移动时将会有较大延迟
-//这里的5ms只是为了实时更新玩家位置，没有网络请求，压力在用户端，不会对服务器造成压力
+}, 5); 
+
+document.onmousedown = function (e) {
+    // 检查鼠标点击的元素
+    if (e.target.className === 'player-label' || e.target.className === 'player-label in-plane') {
+        // 如果点击的是玩家标签，触发玩家标签的拖动事件
+        console.log('label move');
+        var playerLabel = e.target;
+        document.onmousemove = function (e) {
+            // 根据鼠标拖动更新labelsoffset
+            labelsoffset[playerLabel.id].xoffset += e.movementX;
+            labelsoffset[playerLabel.id].yoffset += e.movementY;
+        }
+    } else {
+        // 否则，触发地图的拖动事件
+        document.onmousemove = function (e) {
+            mapimage.onMousemove(e);
+            // console.log('map move');  
+            mapimage.isMousedown = true;  
+        }
+    }
+    document.onmouseup = function () {
+        document.onmousemove = null;
+        document.onmouseup = null;
+    }
+    
+    
+}
+
+
 
 // 将地图坐标映射到百分比
 function mapCoordinateToPercentage(coordinate, min, max) {
@@ -186,7 +251,7 @@ class imageCache {
     
 
 
-new Vue({
+var mapimage = new Vue({
     // 对于<div class="map" ref="map">
     // 通过ref获取DOM元素
     // components: {
@@ -255,10 +320,11 @@ new Vue({
         },
 
         // 鼠标移动
-        onMousemove(e) {
+        onMousemove(e) {           
             if (!this.isMousedown) {
                 return;
             }
+            // console.log('map move');
             // 计算本次拖动的距离对应像素
             let offsetX = e.movementX;
             let offsetY = e.movementY;
