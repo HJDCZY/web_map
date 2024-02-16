@@ -65,9 +65,10 @@ websocket.onmessage = function (evt) {
 };
 
 //设置定时任务
-setInterval(function () {
+// setInterval(
+    function draw () {
     mapContainer.innerHTML = ''; // 清空地图容器以便重新绘制
-
+    console.log('draw');
     playersData.forEach(function(player) {
         
         var playerPoint = document.createElement('div');
@@ -188,7 +189,10 @@ setInterval(function () {
             // }
         }
     });
-}, 5); 
+    requestAnimationFrame(draw);
+}
+// , 10); 
+requestAnimationFrame(draw);
 
 document.onmousedown = function (e) {
     // 检查鼠标点击的元素
@@ -204,9 +208,13 @@ document.onmousedown = function (e) {
     } else {
         // 否则，触发地图的拖动事件
         document.onmousemove = function (e) {
-            mapimage.onMousemove(e);
-            // console.log('map move');  
-            mapimage.isMousedown = true;  
+            if (mapimage && typeof mapimage.onMousemove === 'function') {
+                mapimage.onMousemove(e);
+                mapimage.isMousedown = true;  
+            }
+            // mapimage.onMousemove(e);
+            // // console.log('map move');  
+            // mapimage.isMousedown = true;  
         }
     }
     document.onmouseup = function () {
