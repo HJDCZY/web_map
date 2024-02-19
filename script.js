@@ -1,5 +1,5 @@
 // fivem本身就是个浏览器套壳
-
+/*
 var ws_host = "hjdczy.top"
 var ws_port = 2345
 var ws;
@@ -126,3 +126,4 @@ $(function(){
 
     
 });
+*/

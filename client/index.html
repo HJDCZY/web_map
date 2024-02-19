@@ -33,7 +33,7 @@
             padding: 1px 20px;
             border-radius: 15px;
             position: absolute;
-            z-index: 1;
+            z-index: 3;
             margin-top: 20px;
             margin-left: 20px;
             margin-right: 20px;
@@ -84,6 +84,7 @@
 
         .in-plane {
             background-color: rgba(247, 53, 205, 0.623);
+            /* color: red; */
         }
         #sockettimedout {
             position: absolute;
@@ -106,6 +107,19 @@
         #distanceText {
             /* margin: auto;    */
             text-align: center;
+        }
+        #ATCmessage{
+            text-align: center;
+            box-shadow: 0 0 10px 0 #000;
+            background: #ff6600 ;
+            color: #fff;
+            width: auto;
+            height: auto;
+            /* 在最上层 */
+            position: absolute;
+            z-index: 3;
+            /* 留边框 */
+            padding: 10px;
         }
     </style>
 </head>

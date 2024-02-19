@@ -19,6 +19,14 @@ var coord_k = 1.806 //原坐标1.806代表地图1像素
 var images = {};
 let zoom = 0;
 
+let mousePosition = { x: 0, y: 0 };
+
+// 全局监听 mousemove 事件，保存鼠标的位置
+document.onmousemove = function (e) {
+    mousePosition.x = e.clientX;
+    mousePosition.y = e.clientY;
+}
+
 function getimagepx (x,y){
     //从游戏坐标转换到图片坐标
 
@@ -55,14 +63,36 @@ var mapContainer = document.getElementById('mapContainer'); // 获取地图容�
 var center = [0, 0];
 websocket.onmessage = function (evt) {
     let data = JSON.parse(evt.data);
+    if (data.type == 'ident'){
+        // console.log(data);
+        ident(data.playername, data.playerserverid);
+    }
     if (!Array.isArray(data)) {
         data = [data];
     }
-
+    // console.log(data);
     playersData = data;
     // 清空地图容器，以便重新添加玩家位置
     
 };
+
+let idents = {};    
+function ident(playername,playerserverid) {
+    console.log(playername);
+    //等待1秒
+    setTimeout(() => {
+    //     发送消息给服务器
+        websocket.send(JSON.stringify({type: 'identcallback', playername: playername, playerserverid: playerserverid}));
+    }, 500);
+    //闪烁标签
+    let label = document.getElementById(playername);
+    console.log(label);
+    idents[playername] = true;
+    setTimeout(() => {
+        idents[playername] = false;
+    }, 5000);
+
+}
 
 //设置定时任务
 // setInterval(
@@ -70,7 +100,7 @@ websocket.onmessage = function (evt) {
     mapContainer.innerHTML = ''; // 清空地图容器以便重新绘制
     // console.log('draw');
     playersData.forEach(function(player) {
-        
+        // console.log(player); 
         var playerPoint = document.createElement('div');
         playerPoint.className = 'player-point';
 
@@ -89,6 +119,10 @@ websocket.onmessage = function (evt) {
         if (player.inplane === 1) {
             playerLabel.classList.add('in-plane');
             playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ Math.floor(player.croodz* 3.2808399) + 'ft' + '<br>' + player.speed + 'kt';
+        }
+        if (idents[player.playername] && player.inplane) {
+            playerLabel.style.backgroundColor = 'yellow';
+            playerLabel.style.color = 'green';  
         }
 
         var pxcoord = getimagepx(player.croodx, player.croody);
@@ -188,15 +222,54 @@ websocket.onmessage = function (evt) {
             //     }
             // }
         }
+        //检测ATC的更新，如果更新了，就闪一下标签
+
     });
     requestAnimationFrame(draw);
 }
 // , 10); 
 requestAnimationFrame(draw);
 
+//当鼠标放在标签上按下空格时，显示ATC内容
+document.onkeydown = function (e) {
+    if (e.key === ' ') {
+        // console.log(e);
+        //绘制的元素和draw_line绘制在同一层
+        draw_line.innerHTML = '';
+        ATCmessage = document.createElement('div');
+        //获取鼠标下的标签
+        // console.log(mousePosition);
+        let currentplayer = document.elementFromPoint(mousePosition.x, mousePosition.y);
+        // console.log(currentplayer);
+        if (currentplayer.className === 'player-label' || currentplayer.className === 'player-label in-plane') {
+            
+            currentplayer = currentplayer.id;
+            // console.log(currentplayer); 
+            //在playersdata中搜索
+            for (let i in playersData) {
+                if (playersData[i].playername === currentplayer) {
+                    // console.log('find');
+                    // console.log(playersData[i]);
+                    ATCmessage.innerHTML = playersData[i].ATC;
+                    // console.log(ATCmessage.innerHTML);
+                    break;
+                }
+            }
+            ATCmessage.id = 'ATCmessage';
+            ATCmessage.style.position = 'absolute';
+            ATCmessage.style.left = mousePosition.x + 'px';
+            ATCmessage.style.top = mousePosition.y + 'px';
+            draw_line.appendChild(ATCmessage);
+        }
+    }
+}
+
 window.addEventListener("mouseup", function (e) {
     clearTimeout(mousetimeout); 
-    document.onmousemove = null;
+    document.onmousemove = function (e) {
+        mousePosition.x = e.clientX;
+        mousePosition.y = e.clientY;
+    }
     document.onmouseup = null;
     mapimage.isMousedown = false;
     draw_line.innerHTML = '';
@@ -284,7 +357,7 @@ function dblclick (e) {
         dbsvg.style.top = "0px";
         dbsvg.style.width = "100%";
         dbsvg.style.height = "100%";
-        dbsvg.style.zIndex = "0";
+        dbsvg.style.zIndex = "0"; 
         dbl.setAttribute('x1', mousebefore[0]);
         dbl.setAttribute('y1', mousebefore[1]);
         dbl.setAttribute('x2',  mousebefore[0] + offsetX);

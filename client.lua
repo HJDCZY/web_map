@@ -1,4 +1,3 @@
-    local send = false
 
 Citizen.CreateThread(function ()   
     while true do
@@ -38,30 +37,31 @@ Citizen.CreateThread(function ()
         else
             send = true
         end
-        -- 将坐标传给javascript
-        if send then
-            SendNUIMessage({
-                croodx = croodx,
-                croody = croody,
-                croodz = croodz,
-                speed = speedinknot,
-                inplane = inplane,
-                heading = heading,
-                vehiclemodel = vehiclemodel,
-                playerserverid = playerserverid,
-                playername = playername
-            })
-        end
+        TriggerServerEvent('webmap:senddata', croodx, croody, croodz, speedinknot, inplane, playerserverid, playername, heading, vehiclemodel)
     end
 end)
 
-RegisterNUICallback('checkplayer', function(data, cb)
-    -- print (json.encode(data))
-    if GetPlayerFromServerId(data) ~= -1 then
-        -- print ("player exists")
-        cb(true)
-    else
-        -- print ("player not exists")
-        cb(false)
-    end
-end)
+-- RegisterNUICallback('checkplayer', function(data, cb)
+--     -- print (json.encode(data))
+--     if GetPlayerFromServerId(data) ~= -1 then
+--         -- print ("player exists")
+--         cb(true)
+--     else
+--         -- print ("player not exists")
+--         cb(false)
+--     end
+-- end)
+
+-- 给webmap发送数据
+RegisterCommand('ATC', function(source, args, rawCommand)
+    -- for ipairs, v in ipairs(args) do
+    --     print (v)
+    -- end
+    local playerserverid = GetPlayerServerId(PlayerId())
+    TriggerServerEvent('webmap:ATC', args,playerserverid)
+end, false)
+
+RegisterCommand ('ident', function(source, args, rawCommand)
+    local playerserverid = GetPlayerServerId(PlayerId())
+    TriggerServerEvent('webmap:ident', playerserverid)
+end, false)

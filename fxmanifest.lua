@@ -10,6 +10,10 @@ version'1.0.0'
 client_scripts{
     'client.lua',
 }
+server_scripts{
+    'server.lua',
+    '@mysql-async/lib/MySQL.lua',
+}
 ui_page 'index.html'
 -- script 'script.js'
 files{
