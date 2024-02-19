@@ -68,7 +68,7 @@ websocket.onmessage = function (evt) {
 // setInterval(
     function draw () {
     mapContainer.innerHTML = ''; // 清空地图容器以便重新绘制
-    console.log('draw');
+    // console.log('draw');
     playersData.forEach(function(player) {
         
         var playerPoint = document.createElement('div');
@@ -88,7 +88,7 @@ websocket.onmessage = function (evt) {
 
         if (player.inplane === 1) {
             playerLabel.classList.add('in-plane');
-            playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ Math.floor(player.croodz* 3.2808399);
+            playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ Math.floor(player.croodz* 3.2808399) + 'ft' + '<br>' + player.speed + 'kt';
         }
 
         var pxcoord = getimagepx(player.croodx, player.croody);
@@ -194,8 +194,40 @@ websocket.onmessage = function (evt) {
 // , 10); 
 requestAnimationFrame(draw);
 
+window.addEventListener("mouseup", function (e) {
+    clearTimeout(mousetimeout); 
+    document.onmousemove = null;
+    document.onmouseup = null;
+    mapimage.isMousedown = false;
+    draw_line.innerHTML = '';
+    // console.log('mouseup'); 
+});
+let clicktimer = 0 ;
+
+
+let mousebefore = [0, 0];
 document.onmousedown = function (e) {
     // 检查鼠标点击的元素
+    
+    //如果距离上一次点击时间小于100ms，则认为是双击
+    clicktimer ++;
+    if (clicktimer == 1) {
+        // console.log('click');
+        mousebefore = [e.clientX, e.clientY];
+    }
+    mousetimeout = setTimeout(() => {
+        if (clicktimer == 1) {
+            // console.log('click');
+            click(e);
+        } else {
+            // console.log('dblclick');
+            dblclick(e);
+        }
+        clicktimer = 0;
+    }, 100)
+}
+
+function click (e) {
     if (e.target.className === 'player-label' || e.target.className === 'player-label in-plane') {
         // 如果点击的是玩家标签，触发玩家标签的拖动事件
         // console.log('label move');
@@ -213,15 +245,89 @@ document.onmousedown = function (e) {
                 mapimage.isMousedown = true;  
             }
             // mapimage.onMousemove(e);
-            // // console.log('map move');  
+            // console.log('map move');  
             // mapimage.isMousedown = true;  
         }
     }
     document.onmouseup = function () {
         document.onmousemove = null;
         document.onmouseup = null;
+        
+        mapimage.isMousedown = false;
+        
     }
+}
+
+//读取<div class="draw-line">
+let draw_line = document.getElementById('draw_line');
+
+function dblclick (e) {
+    //document.ondblclick  = function (e) {
+    //双击之后拖动
+    // console.log('dblclick');
+    this.isMousedown = true;
     
+    // console .log(mousebefore);
+    let mouseoffset = [0, 0];
+    let offsetX = 0, offsetY = 0;
+    document.onmousemove = function (e) {
+        // 计算本次拖动的距离对应像素
+        draw_line.innerHTML = '';
+        offsetX += e.movementX;
+        offsetY += e.movementY;
+        //绘制连线
+        // console.log(offsetX, offsetY);
+        let dbsvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");  
+        let dbl = document.createElementNS('http://www.w3.org/2000/svg','line');
+        dbsvg.style.position = "absolute";
+        dbsvg.style.left = "0px";
+        dbsvg.style.top = "0px";
+        dbsvg.style.width = "100%";
+        dbsvg.style.height = "100%";
+        dbsvg.style.zIndex = "0";
+        dbl.setAttribute('x1', mousebefore[0]);
+        dbl.setAttribute('y1', mousebefore[1]);
+        dbl.setAttribute('x2',  mousebefore[0] + offsetX);
+        dbl.setAttribute('y2',  mousebefore[1] + offsetY);
+        dbl.setAttribute('stroke', '#000000');
+        dbl.setAttribute('stroke-width', '2');
+        dbsvg.appendChild(dbl);
+
+        // 将两点距离显示在线上方
+        let distance = Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2));
+        let distanceText = document.createElement('div');
+        distanceText.id = 'distanceText';
+        distanceText.style.position = 'absolute';
+        distanceText.style.left = mousebefore[0]+ offsetX/2 -20 + 'px';
+        distanceText.style.top = mousebefore[1] + offsetY/2  -20+ 'px';
+        distanceText.style.zIndex = '1';
+        //显示方向沿着线的方向
+        let angle = Math.atan2(offsetY, offsetX) * 180 / Math.PI;
+        // console.log(angle);
+        //不能倒转
+        if (angle < -90 || angle > 90){
+            angle += 180;
+        }
+        distanceText.style.transform = 'rotate(' + angle + 'deg)';
+        distanceText.style.fontSize = '12px';
+        distanceText.style.color = '#000000';   
+        
+        //显示两点之间角度
+        let angleTextcache = Math.atan2(offsetY, offsetX) * 180 / Math.PI;
+        let angleText = angleTextcache;
+        if (angleTextcache < -90) {
+            angleText= angleTextcache+ (360+90);
+        }
+        else if (angleTextcache <180 && angleTextcache > -90) {
+            angleText= angleTextcache+ 90;
+        }
+        distanceText.innerHTML = Math.floor( distance.toFixed(2) * coord_k) + 'm  ' +angleText.toFixed(2) + '°';
+        draw_line.appendChild(distanceText);
+
+
+
+        draw_line.appendChild(dbsvg);
+    }
     
 }
 
@@ -302,8 +408,9 @@ var mapimage = new Vue({
     // },
     mounted() {
         window.addEventListener("mousemove", this.onMousemove);
-        window.addEventListener("mouseup", this.onMouseup);
+        
         window.addEventListener("mousewheel", this.onMousewheel);
+        
         //按H回中
         window.addEventListener("keydown", (e) => {
             if (e.key === 'h') {
@@ -328,7 +435,7 @@ var mapimage = new Vue({
             for (let j = 0; j < colnum; j++) {
                 let image = new Image();
                 image.src = `https://hjdczy.top:3307/mydevice/webmap/${zoom}/${j}/${i}.png`;
-                console.log(image.src);
+                // console.log(image.src);
                 //渲染到canvas
                 // image.onload = function () {
                 //     ctx.drawImage(image, j * 1500, i * 1500);
@@ -382,6 +489,7 @@ var mapimage = new Vue({
             this.reload(x,y);
 
         },
+
 
         // 鼠标松开
         onMouseup() {
