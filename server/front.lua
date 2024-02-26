@@ -6,7 +6,7 @@ local server = require "resty.websocket.server"
 local cjson = require "cjson"
 
 -- 读取配置文件
-local config_file = io.open("../config.json", "r")
+local config_file = io.open("./config.json", "r")
 if not config_file then
     print("[Error]Failed to open config file.")
     return
