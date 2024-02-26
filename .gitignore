@@ -1,0 +1,8 @@
+fastcgi_temp
+proxy_temp
+scgi_temp
+.vscode
+uwsgi_temp
+logs
+vue-project
+config.json
