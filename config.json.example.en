@@ -1,0 +1,15 @@
+{
+    "websocket": {
+        "timeout": 20000, // WebSocket connection timeout in milliseconds
+        "max_payload_len": 65535 // Maximum payload length for WebSocket
+    },
+    "mysql": {
+        "host": "127.0.0.1", // MySQL database host address
+        "port": 3306, // MySQL database port number
+        "user": "", // MySQL database username
+        "password": "", // MySQL database password
+        "database": "", // MySQL database name
+        "charset": "utf8", // Connection character set
+        "max_packet_size": 1048576 // Maximum packet size for MySQL
+    }
+}
