@@ -1,8 +1,11 @@
 
 Citizen.CreateThread(function ()   
+    local playerserverid = GetPlayerServerId(PlayerId())   
     while true do
         local playerped = GetPlayerPed(-1)
-        local playerserverid = GetPlayerServerId(PlayerId())
+        if playerserverid == nil then
+            playerserverid = GetPlayerServerId(PlayerId())
+        end
         Citizen.Wait(250)
         -- 获得玩家坐标
         local crood = GetEntityCoords(playerped)
@@ -30,14 +33,10 @@ Citizen.CreateThread(function ()
 
         -- 检查数据，必须都不是nil 
         -- print("name" .. playername)
-        if croodx == nil or croody == nil or croodz == nil or speedinknot == nil or inplane == nil or playerserverid == nil or playername == nil then
-            send = false
-        elseif croodx == 0 or croody == 0 or croodz == 0 then
-            send = false
-        else
-            send = true
+        if not (playerserverid == nil or playername  == nil) then
+            TriggerServerEvent('webmap:senddata', croodx, croody, croodz, speedinknot, inplane, playerserverid, playername, heading, vehiclemodel)
         end
-        TriggerServerEvent('webmap:senddata', croodx, croody, croodz, speedinknot, inplane, playerserverid, playername, heading, vehiclemodel)
+
     end
 end)
 

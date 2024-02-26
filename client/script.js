@@ -78,7 +78,7 @@ websocket.onmessage = function (evt) {
 
 let idents = {};    
 function ident(playername,playerserverid) {
-    console.log(playername);
+    // console.log(playername);
     //等待1秒
     setTimeout(() => {
     //     发送消息给服务器
@@ -86,7 +86,7 @@ function ident(playername,playerserverid) {
     }, 500);
     //闪烁标签
     let label = document.getElementById(playername);
-    console.log(label);
+    // console.log(label);
     idents[playername] = true;
     setTimeout(() => {
         idents[playername] = false;
@@ -118,11 +118,11 @@ function ident(playername,playerserverid) {
 
         if (player.inplane === 1) {
             playerLabel.classList.add('in-plane');
-            playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ Math.floor(player.croodz* 3.2808399) + 'ft' + '<br>' + player.speed + 'kt';
+            playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ '<br>' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
         }
         if (idents[player.playername] && player.inplane) {
             playerLabel.style.backgroundColor = 'yellow';
-            playerLabel.style.color = 'green';  
+            playerLabel.style.color = 'green';   
         }
 
         var pxcoord = getimagepx(player.croodx, player.croody);
@@ -200,8 +200,8 @@ function ident(playername,playerserverid) {
                 //绘制
                 speedline.setAttribute('x1', leftpxcoord+3);
                 speedline.setAttribute('y1', toppxcoord +3);
-                speedline.setAttribute('x2', leftpxcoord + speedx);
-                speedline.setAttribute('y2', toppxcoord + speedy);
+                speedline.setAttribute('x2', leftpxcoord + speedx+3);
+                speedline.setAttribute('y2', toppxcoord + speedy+3);
                 speedline.setAttribute('stroke', '#FF0000');
                 speedline.setAttribute('stroke-width', '2');
 
@@ -334,6 +334,21 @@ function click (e) {
 //读取<div class="draw-line">
 let draw_line = document.getElementById('draw_line');
 
+function calculateDistance(distancepx) {    
+    if (zoom == 3) {
+        return distancepx * coord_k;
+    }
+    else if (zoom == 2) {
+        return distancepx * coord_k * 2;
+    }
+    else if (zoom == 1) {
+        return distancepx * coord_k * 4;
+    }
+    else {
+        return distancepx * coord_k * 8;
+    }   
+}   
+
 function dblclick (e) {
     //document.ondblclick  = function (e) {
     //双击之后拖动
@@ -394,7 +409,7 @@ function dblclick (e) {
         else if (angleTextcache <180 && angleTextcache > -90) {
             angleText= angleTextcache+ 90;
         }
-        distanceText.innerHTML = Math.floor( distance.toFixed(2) * coord_k) + 'm  ' +angleText.toFixed(2) + '°';
+        distanceText.innerHTML = Math.floor( calculateDistance(distance.toFixed(2))) + 'm  ' +angleText.toFixed(2) + '°';
         draw_line.appendChild(distanceText);
 
 

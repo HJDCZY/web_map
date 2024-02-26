@@ -2,40 +2,6 @@
 RegisterNetEvent('webmap:senddata')
 AddEventHandler('webmap:senddata', function(croodx, croody, croodz, speedinknot, inplane, playerserverid, playername, heading, vehiclemodel)
     -- 发送数据到mysql,如果不存在记录则插入，如果存在则更新
-    -- MySQL.Async.fetchAll('SELECT * FROM webmap_players WHERE serverid = @serverid', {
-    --     ['@serverid'] = playerserverid
-    -- }, function(result)
-    --     -- print(result[1])
-    --     if result[1] == nil then
-    --         MySQL.Async.execute('INSERT INTO webmap_players (croodx, croody, croodz, speed, inplane, serverid, playername, heading, vehiclemodel) VALUES (@croodx, @croody, @croodz, @speed, @inplane, @serverid, @playername, @heading, @vehiclemodel)', {
-    --             ['@croodx'] = croodx,
-    --             ['@croody'] = croody,
-    --             ['@croodz'] = croodz,
-    --             ['@speed'] = speedinknot,
-    --             ['@inplane'] = inplane,
-    --             ['@serverid'] = playerserverid,
-    --             ['@playername'] = playername,
-    --             ['@heading'] = heading,
-    --             ['@vehiclemodel'] = vehiclemodel
-    --         }, function(rowsChanged)
-    --             -- print(rowsChanged)
-    --         end)
-    --     else
-    --         MySQL.Async.execute('UPDATE webmap_players SET croodx = @croodx, croody = @croody, croodz = @croodz, speed = @speed, inplane = @inplane, playername = @playername, heading = @heading, vehiclemodel = @vehiclemodel WHERE serverid = @serverid', {
-    --             ['@croodx'] = croodx,
-    --             ['@croody'] = croody,
-    --             ['@croodz'] = croodz,
-    --             ['@speed'] = speedinknot,
-    --             ['@inplane'] = inplane,
-    --             ['@serverid'] = playerserverid,
-    --             ['@playername'] = playername,
-    --             ['@heading'] = heading,
-    --             ['@vehiclemodel'] = vehiclemodel
-    --         }, function(rowsChanged)
-    --             -- print(rowsChanged)
-    --         end)
-    --     end
-    -- end)
     MySQL.Async.execute('INSERT INTO webmap_players (croodx, croody, croodz, speed, inplane, serverid, playername, heading, vehiclemodel) VALUES (@croodx, @croody, @croodz, @speed, @inplane, @serverid, @playername, @heading, @vehiclemodel) ON DUPLICATE KEY UPDATE croodx = @croodx, croody = @croody, croodz = @croodz, speed = @speed, inplane = @inplane, playername = @playername, heading = @heading, vehiclemodel = @vehiclemodel', {
         ['@croodx'] = croodx,
         ['@croody'] = croody,
@@ -47,7 +13,7 @@ AddEventHandler('webmap:senddata', function(croodx, croody, croodz, speedinknot,
         ['@heading'] = heading,
         ['@vehiclemodel'] = vehiclemodel
     }, function(rowsChanged)
-        -- print(rowsChanged)
+        -- print(playerserverid, playername)
     end)
 end)
 
