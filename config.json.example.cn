@@ -1,0 +1,17 @@
+{
+    "websocket":
+    {
+        "timeout": 20000, // WebSocket连接超时时间，单位为毫秒
+        "max_payload_len": 65535 // WebSocket最大负载长度
+    },
+    "mysql":
+    {
+        "host": "127.0.0.1", // MySQL数据库主机地址
+        "port": 3306, // MySQL数据库端口号
+        "user": "", // MySQL数据库用户名
+        "password": "", // MySQL数据库密码
+        "database": "", // MySQL数据库名称
+        "charset": "utf8", // 连接字符集
+        "max_packet_size": 1048576 // MySQL最大数据包大小
+    }
+}

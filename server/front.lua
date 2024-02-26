@@ -4,19 +4,38 @@
 -- 服务器端的websocket服务
 local server = require "resty.websocket.server"
 local cjson = require "cjson"
+
+-- 读取配置文件
+local config_file = io.open("../config.json", "r")
+if not config_file then
+    print("[Error]Failed to open config file.")
+    return
+end
+
+-- 读取配置文件
+local config_content = config_file:read("*a")
+config_file:close()
+
+local config, err = cjson.decode(config_content)
+if not config then
+    print("[Error]Failed to parse config JSON:", err)
+    return
+end
+
+local websocket_config = config.websocket
 local wb, err = server:new{
-    timeout = 20000, -- in milliseconds
-    max_payload_len = 65535,
+    timeout = websocket_config.timeout, -- in milliseconds
+    max_payload_len = websocket_config.max_payload_len,
 }
 if not wb then
-    ngx.log(ngx.ERR, "failed to new websocket: ", err)
+    ngx.log(ngx.ERR, "[Error]Failed to new websocket: ", err)
     return ngx.exit(444)
 end
 local connected = true
 
--- TODO: 修改硬编码
-local sqluser = "hjdczy"
-local sqlpassword = "yoyo14185721" 
+local sql_config = config.mysql
+local sqluser = sql_config.user
+local sqlpassword = sql_config.password
 -- ngx.log(ngx.INFO, "connected to websocket.")
 local players = {}
 local player_count = 0
@@ -50,9 +69,6 @@ function player:move(newcroodx,newcroody,newcroodz,newspeed,inplane,heading,vehi
 end
 
 
-
-    
--- TODO: 要做的活更多了（同上修改应编码）
 -- 初始化mysql
 local mysql = require "resty.mysql"
 local db, err = mysql:new()
@@ -63,13 +79,13 @@ end
 db:set_timeout(20000)
 -- ngx.log(ngx.INFO, "try to connect to mysql.")
 local ok, err, errcode, sqlstate = db:connect{
-    host = "127.0.0.1",
-    port = 3306,
-    database = "es_extended",
+    host = sql_config.host,
+    port = sql_config.port,
+    database = sql_config.database,
     user = sqluser,
     password = sqlpassword,
-    charset = "utf8",
-    max_packet_size = 1024 * 1024,
+    charset = sql_config.charset,
+    max_packet_size = sql_config.max_packet_size,
 }
 if not ok then
     ngx.log(ngx.ERR, "failed to connect: ", err, ": ", errcode, " ", sqlstate)

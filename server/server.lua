@@ -13,8 +13,28 @@
 --     return ngx.exit(444)
 -- end
 
-local sqluser = "hjdczy"
-local sqlpassword = "yoyo14185721"
+local cjson = require "cjson"
+
+-- 读取配置文件
+local config_file = io.open("../config.json", "r")
+if not config_file then
+    print("[Error]Failed to open config file.")
+    return
+end
+
+-- 读取配置文件
+local config_content = config_file:read("*a")
+config_file:close()
+
+local config, err = cjson.decode(config_content)
+if not config then
+    print("[Error]Failed to parse config JSON:", err)
+    return
+end
+
+local sql_config = config.mysql
+local sqluser = sql_config.user
+local sqlpassword = sql_config.password
 
 -- serverid要特殊储存，关闭服务器时删除数据库中的记录
 local playerserverid = nil
