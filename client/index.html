@@ -9,121 +9,124 @@
     <script  src="./script.js" defer></script>
     <meta charset="UTF-8">
     <title>洛城飞行大队-在线地图</title>
+    <!-- 引入style.css不成功 -->
+    <!-- <link rel="stylesheet" href="./style.css"> -->
     <style>
-        /* 背景图片 */
-        body {
-            /* background-image: url('https://hjdczy.top:3307/mydevice/image/01.jpg'); */
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            
-        }
+         /* 背景图片 */
+body {
+    /* background-image: url('https://hjdczy.top:3307/mydevice/image/01.jpg'); */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    
+}
 
-        /* 顶部导航栏的样式 */
-        .navbar {
-            background-color: rgba(0, 0, 0, 0.5); /* 半透明 */
-            background-color: #333;
-            color: #fff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1px 20px;
-            border-radius: 15px;
-            position: absolute;
-            z-index: 3;
-            margin-top: 20px;
-            margin-left: 20px;
-            margin-right: 20px;
-        }
+/* 顶部导航栏的样式 */
+.navbar {
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明 */
+    background-color: #333;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1px 20px;
+    border-radius: 15px;
+    position: absolute;
+    z-index: 3;
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
 
-        /* 导航链接样式 */
-        .navbar a {
-            color: #fff;
-            text-decoration: none;
-            margin: 0 10px;
-            padding: 5px 10px;
-        }
+/* 导航链接样式 */
+.navbar a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 10px;
+    padding: 5px 10px;
+}
 
-        .navbar h1 {
-            font-size: 22px;
-        }
+.navbar h1 {
+    font-size: 22px;
+}
 
-        /* 地图容器 */
-        .map-container {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden; /* 防止地图内容溢出 */
-            /* cursor: grab; */
-        }
-        #mapimage {
-            cursor: grab;
-        }
-        /* 玩家 */
-        .player-label, .player-point {
-            position: absolute;
-            z-index: 2; /* 确保标签在点和线之上 */
-        }
+/* 地图容器 */
+.map-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* 防止地图内容溢出 */
+    /* cursor: grab; */
+}
+#mapimage {
+    cursor: grab;
+}
+/* 玩家 */
+.player-label, .player-point {
+    position: absolute;
+    z-index: 2; /* 确保标签在点和线之上 */
+}
 
-        .player-label {
-            background-color: rgb(0, 0, 0,0.9);
-            color: #fff;
-            padding: 5px;
-            border-radius: 5px;
-        }
+.player-label {
+    background-color: rgb(0, 0, 0,0.9);
+    color: #fff;
+    padding: 5px;
+    border-radius: 5px;
+}
 
-        .player-point {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background-color: #ff0000;
-        }
+.player-point {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #ff0000;
+}
 
-        .in-plane {
-            background-color: rgba(247, 53, 205, 0.623);
-            /* color: red; */
-        }
-        #sockettimedout {
-            position: absolute;
-            background-color: #ff0000;
-            color: #ffffff;
-            width: 200px;
-            height: 50px;
-            top: 10%;
-            right: 50%;
-            border-radius: 5px;
-            display: block;
-        }
-        #draw_line {
-            position: absolute;
-            /* z-index: 3; */
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        #distanceText {
-            /* margin: auto;    */
-            text-align: center;
-        }
-        #ATCmessage{
-            text-align: center;
-            box-shadow: 0 0 10px 0 #000;
-            background: #ff6600 ;
-            color: #fff;
-            width: auto;
-            height: auto;
-            /* 在最上层 */
-            position: absolute;
-            z-index: 3;
-            /* 留边框 */
-            padding: 10px;
-        }
+.in-plane {
+    background-color: rgba(247, 53, 205, 0.623);
+    /* color: red; */
+}
+#sockettimedout {
+    position: absolute;
+    background-color: #ff0000;
+    color: #ffffff;
+    width: 200px;
+    height: 50px;
+    top: 10%;
+    right: 50%;
+    border-radius: 5px;
+    display: block;
+}
+#draw_line {
+    position: absolute;
+    /* z-index: 3; */
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+#distanceText {
+    /* margin: auto;    */
+    text-align: center;
+}
+#ATCmessage{
+    text-align: center;
+    box-shadow: 0 0 10px 0 #000;
+    background: #ff6600 ;
+    color: #fff;
+    width: auto;
+    height: auto;
+    /* 在最上层 */
+    position: absolute;
+    z-index: 3;
+    /* 留边框 */
+    padding: 10px;
+}
     </style>
 </head>
 <body>
+    
 <!-- 导航栏 -->
     <div class="navbar">
         <h1>在线地图(按H回中)</h1>
