@@ -123,16 +123,39 @@ body {
     /* 留边框 */
     padding: 10px;
 }
+#db_refresh {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    justify-content: space-between;
+    align-items: center;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #ff5fe4;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  padding: 12px 16px;
+}
+#onlineplayers:hover + .dropdown-content {
+    display: block;
+}
     </style>
 </head>
 <body>
     
 <!-- 导航栏 -->
     <div class="navbar">
-        <h1>在线地图(按H回中)</h1>
+        <h1>在线地图(按H回中) </h1>
         <div>
+            <span id="onlineplayers">在线玩家</span>
+            <div class="dropdown-content" id="onlineplayersdropdown">
+                <p>玩家 呼号</p>
+            </div>
             <a href="https://hjdczy.top:333/">百科</a>
             <a href="http://175.24.205.80:2333/status/serverinfo">状态</a>
+            <button onclick=db_refresh() id="db_refresh">刷新数据</button>
         </div>
     </div>
     <div id="draw_line">

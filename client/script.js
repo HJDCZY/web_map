@@ -59,8 +59,14 @@ function getgamecoord (x,y){
     return [(x - 6506) * coord_k, -((y - 6277) * coord_k)];
 }
 
+function db_refresh() {
+    //通过websocket发送消息
+    websocket.send(JSON.stringify({type: 'refresh'}));
+}
+
 var mapContainer = document.getElementById('mapContainer'); // 获取地图容器
 var center = [0, 0];
+let playerlist = {};
 websocket.onmessage = function (evt) {
     let data = JSON.parse(evt.data);
     if (data.type == 'ident'){
@@ -69,11 +75,58 @@ websocket.onmessage = function (evt) {
     }
     if (!Array.isArray(data)) {
         data = [data];
+        
+
     }
     // console.log(data);
     playersData = data;
-    // 清空地图容器，以便重新添加玩家位置
-    
+    //更新玩家数据表，给<div class="dropdown-content" id="onlineplayersdropdown">添加数据项
+    let dropdowncontent = document.getElementById('onlineplayersdropdown');
+    dropdowncontent.innerHTML = '';
+    let table = document.createElement('table');
+    let tableheader = document.createElement('tr');
+    let tableheadername = document.createElement('th');
+    tableheadername.innerHTML = '玩家';
+    let tableheadercallsign = document.createElement('th');
+    tableheadercallsign.innerHTML = '呼号';
+    tableheader.appendChild(tableheadername);
+    tableheader.appendChild(tableheadercallsign);
+    table.appendChild(tableheader);
+
+    for (let i in data) {
+        let player = data[i];
+        if ( player.ATC !== null ) {
+            
+            // console.log(player);
+            let playername = player.playername;
+            let playeritem = document.createElement('tr');
+            //截取data.ATC空格为分隔的第一个元素
+            // console.log(player.ATC);
+            callsign = player.ATC.split(' ')[0];
+            let playernameitem = document.createElement('td');
+            playernameitem.innerHTML = playername;
+            let playercallsignitem = document.createElement('td');
+            playercallsignitem.innerHTML = callsign;
+            playeritem.appendChild(playernameitem);
+            playeritem.appendChild(playercallsignitem);
+            table.appendChild(playeritem);
+        }
+        else 
+        {
+            // console.log(player);
+            let playername = player.playername;
+            let playeritem = document.createElement('tr');
+            let playernameitem = document.createElement('td');
+            playernameitem.innerHTML = playername;
+            let playercallsignitem = document.createElement('td');
+            playercallsignitem.innerHTML = '/';
+            playeritem.appendChild(playernameitem);
+            playeritem.appendChild(playercallsignitem);
+            table.appendChild(playeritem);
+        }
+    }
+    dropdowncontent.appendChild(table);
+
 };
 
 let idents = {};    
@@ -118,8 +171,14 @@ function ident(playername,playerserverid) {
 
         if (player.inplane === 1) {
             playerLabel.classList.add('in-plane');
-            playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ '<br>' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
+            if (player.ATC === null) {
+                playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ '<br>' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
+            }
+            else {
+                playerLabel.innerHTML = player.playername  + '  [' + player.ATC.split(' ')[0] + ']<br>' + '(' + player.vehiclemodel + ') ' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
+            }
         }
+
         if (idents[player.playername] && player.inplane) {
             playerLabel.style.backgroundColor = 'yellow';
             playerLabel.style.color = 'green';   

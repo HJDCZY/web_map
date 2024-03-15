@@ -164,6 +164,14 @@ while true do
                 return ngx.exit(444)
             end
         end
+        if t.type == "refresh" then
+            -- 清空数据表
+            local res, err, errcode, sqlstate = db:query("delete from webmap_players")
+            if not res then
+                ngx.log(ngx.ERR, "bad result: ", err, ": ", errcode, ": ", sqlstate, ".")
+                return ngx.exit(444)
+            end
+        end
     end
     -- ngx.log(ngx.INFO, "send data")  
     ngx.sleep(0.1)

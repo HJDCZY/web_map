@@ -19,11 +19,17 @@ end)
 
 AddEventHandler('playerDropped', function (reason)
     local playerserverid = source
+    print (playerserverid)
     MySQL.Async.execute('DELETE FROM webmap_players WHERE serverid = @serverid', {
         ['@serverid'] = playerserverid
     }, function(rowsChanged)
         -- print(rowsChanged)
     end)    
+    MySQL.Async.execute('DELETE FROM webmap_players WHERE playername = @playername', {
+        ['@playername'] = GetPlayerName(playerserverid)
+    }, function(rowsChanged)
+        -- print(rowsChanged)
+    end)
 end)
     
 RegisterNetEvent('webmap:ATC')

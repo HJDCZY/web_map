@@ -19,7 +19,7 @@ Citizen.CreateThread(function ()
         -- local speed = math.sqrt(speedx*speedx + speedy*speedy)
         -- print (speed)
         local speed = GetEntitySpeed(playerped)
-        local speedinknot = math.floor(speed * 1.9438444924574)
+        local speedinknot = math.floor(speed * 1.9438444924574) or 0
         -- 如果玩家在飞机上
         local inplane = IsPedInAnyPlane(playerped)
         local playername = GetPlayerName(PlayerId())
