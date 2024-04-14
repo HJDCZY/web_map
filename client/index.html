@@ -130,6 +130,13 @@ body {
     justify-content: space-between;
     align-items: center;
 }
+#play_ATIS{
+    background-color: #333;
+    color: #fff;
+    border: none;
+    justify-content: space-between;
+    align-items: center;
+}
 .dropdown-content {
   display: none;
   position: absolute;
@@ -156,6 +163,7 @@ body {
             <a href="https://hjdczy.top:333/">百科</a>
             <a href="http://175.24.205.80:2333/status/serverinfo">状态</a>
             <button onclick=db_refresh() id="db_refresh">刷新数据</button>
+            <button onclick=play_ATIS() id="play_ATIS">ATIS</button>
         </div>
     </div>
     <div id="draw_line">
@@ -176,15 +184,9 @@ body {
         </template>
     </div>
 
-
-
-    
         <!-- <div id="vue-test">
             <p>{{message}}</p>
         </div> -->
-
-
-    
 
 </body>
 </html>

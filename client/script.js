@@ -359,41 +359,84 @@ document.onmousedown = function (e) {
     }, 100)
 }
 
-function click (e) {
-    if (e.target.className === 'player-label' || e.target.className === 'player-label in-plane') {
-        // 如果点击的是玩家标签，触发玩家标签的拖动事件
-        // console.log('label move');
-        var playerLabel = e.target;
-        document.onmousemove = function (e) {
-            // 根据鼠标拖动更新labelsoffset
-            labelsoffset[playerLabel.id].xoffset += e.movementX;
-            labelsoffset[playerLabel.id].yoffset += e.movementY;
+function click(e) {
+    if (isTouchDevice()) {
+        // 触摸设备处理
+        if (e.target.classList.contains('player-label') || e.target.classList.contains('player-label in-plane')) {
+            var playerLabel = e.target;
+
+            // 添加触摸移动事件监听器
+            playerLabel.addEventListener('touchmove', function (e) {
+                e.preventDefault(); // 阻止默认的触摸事件，避免页面滚动或缩放
+                var touch = e.touches[0];
+                labelsoffset[playerLabel.id].xoffset += touch.clientX - labelsoffset[playerLabel.id].lastX;
+                labelsoffset[playerLabel.id].yoffset += touch.clientY - labelsoffset[playerLabel.id].lastY;
+                labelsoffset[playerLabel.id].lastX = touch.clientX;
+                labelsoffset[playerLabel.id].lastY = touch.clientY;
+            });
+        } else {
+            // 添加全局触摸移动事件监听器，用于地图拖动
+            document.addEventListener('touchmove', function (e) {
+                e.preventDefault(); // 阻止默认的触摸事件，避免页面滚动或缩放
+                if (mapimage && typeof mapimage.onTouchmove === 'function') {
+                    mapimage.onTouchmove(e);
+                    mapimage.isMousedown = true;
+                }
+            });
         }
     } else {
-        // 否则，触发地图的拖动事件
-        document.onmousemove = function (e) {
-            if (mapimage && typeof mapimage.onMousemove === 'function') {
-                mapimage.onMousemove(e);
-                mapimage.isMousedown = true;  
-            }
-            // mapimage.onMousemove(e);
-            // console.log('map move');  
-            // mapimage.isMousedown = true;  
+        // 非触摸设备处理
+        if (e.target.classList.contains('player-label') || e.target.classList.contains('player-label in-plane')) {
+            var playerLabel = e.target;
+
+            // 添加鼠标移动事件监听器，处理玩家标签的拖动
+            document.onmousemove = function (e) {
+                labelsoffset[playerLabel.id].xoffset += e.movementX;
+                labelsoffset[playerLabel.id].yoffset += e.movementY;
+            };
+        } else {
+            // 添加全局鼠标移动事件监听器，用于地图拖动
+            document.onmousemove = function (e) {
+                if (mapimage && typeof mapimage.onMousemove === 'function') {
+                    mapimage.onMousemove(e);
+                    mapimage.isMousedown = true;
+                }
+            };
         }
     }
+
+    // 添加鼠标/触摸释放事件监听器，解除绑定
     document.onmouseup = function () {
         document.onmousemove = null;
         document.onmouseup = null;
-        
-        mapimage.isMousedown = false;
-        
+        if (mapimage) {
+            mapimage.isMousedown = false;
+        }
+    };
+}
+
+// 检测是否为触摸设备
+function isTouchDevice() {
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+}
+
+// 输出设备类型检测结果,仅测试
+function outputDeviceType() {
+    if (isTouchDevice()) {
+        console.log('当前设备是触摸设备');
+    } else {
+        console.log('当前设备不是触摸设备');
     }
 }
+
+// 调用输出设备类型检测结果的函数
+outputDeviceType();
+
 
 //读取<div class="draw-line">
 let draw_line = document.getElementById('draw_line');
 
-function calculateDistance(distancepx) {    
+function calculateDistance(distancepx) {
     if (zoom == 3) {
         return distancepx * coord_k;
     }
