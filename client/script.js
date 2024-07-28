@@ -18,8 +18,43 @@ websocket.onerror = function (evt) {
 var coord_k = 1.806 //原坐标1.806代表地图1像素
 var images = {};
 let zoom = 0;
+let touchPoints = false;
 
 let mousePosition = { x: 0, y: 0 };
+
+let devicetype = 'mouse';
+// 检测是否为触摸设备
+function isTouchDevice() {
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+}
+
+// 检测是否为鼠标设备
+function isMouseDevice() {
+    return 'onmousemove' in window || 'onmousedown' in window;
+}
+
+// 输出设备类型检测结果
+function outputDeviceType() {
+    const touch = isTouchDevice();
+    const mouse = isMouseDevice();
+
+    if (touch && mouse) {
+        console.log('当前设备既支持触摸也支持鼠标');
+        devicetype = 'touch&mouse';
+    } else if (touch) {
+        console.log('当前设备是触摸设备');
+        devicetype = 'touch';
+    } else if (mouse) {
+        console.log('当前设备是鼠标设备');
+        devicetype = 'mouse';
+    } else {
+        console.log('当前设备既不支持触摸也不支持鼠标');
+        devicetype = 'none';
+    }
+}
+
+// 调用函数输出设备类型
+outputDeviceType();
 
 // 全局监听 mousemove 事件，保存鼠标的位置
 document.onmousemove = function (e) {
@@ -95,13 +130,13 @@ websocket.onmessage = function (evt) {
 
     for (let i in data) {
         let player = data[i];
-        if ( player.ATC !== null ) {
+        if ( player.ATC !== null && player.ATC !== undefined) {
             
             // console.log(player);
             let playername = player.playername;
             let playeritem = document.createElement('tr');
             //截取data.ATC空格为分隔的第一个元素
-            // console.log(player.ATC);
+            console.log(player.ATC);
             callsign = player.ATC.split(' ')[0];
             let playernameitem = document.createElement('td');
             playernameitem.innerHTML = playername;
@@ -125,7 +160,12 @@ websocket.onmessage = function (evt) {
             table.appendChild(playeritem);
         }
     }
+
+    
+
     dropdowncontent.appendChild(table);
+
+
 
 };
 
@@ -149,141 +189,161 @@ function ident(playername,playerserverid) {
 
 //设置定时任务
 // setInterval(
-    function draw () {
-    mapContainer.innerHTML = ''; // 清空地图容器以便重新绘制
-    // console.log('draw');
-    playersData.forEach(function(player) {
-        // console.log(player); 
-        var playerPoint = document.createElement('div');
-        playerPoint.className = 'player-point';
 
-        var playerLabel = document.createElement('div');
-        playerLabel.className = 'player-label';
-        //给予id，后面拖动好定位
-        playerLabel.id = player.playername;
-        if (player.vehiclemodel != 'CARNOTFOUND' && player.inplane != 1) {
-            playerLabel.innerHTML = player.playername + '(' + player.vehiclemodel + ')' ;  
-        }
-        else {
-            playerLabel.innerHTML = player.playername ;
-        }
-        playerLabel.style.userSelect = 'none';
+let lastCallTime = 0;
+const fps = 30; // 每秒帧数
+const frameDuration = 1000 / fps;
 
-        if (player.inplane === 1) {
-            playerLabel.classList.add('in-plane');
-            if (player.ATC === null) {
-                playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ '<br>' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
+
+
+function draw () {
+    const now = Date.now();
+    const elapsed = now - lastCallTime;
+
+
+    //触控移动和玩家点的加载不能同时进行，因为性能问题，当没有触控点的时候，才加载玩家点
+    if (elapsed > frameDuration && touchPoints === false) {
+        lastCallTime = now;
+
+        // mapimage.reload(0,0);
+        mapContainer.innerHTML = ''; // 清空地图容器以便重新绘制
+        // console.log('draw');
+        playersData.forEach(function(player) {
+            // console.log(player); 
+            var playerPoint = document.createElement('div');
+            playerPoint.className = 'player-point';
+
+            var playerLabel = document.createElement('div');
+            playerLabel.className = 'player-label';
+            //给予id，后面拖动好定位
+            playerLabel.id = player.playername;
+            if (player.vehiclemodel != 'CARNOTFOUND' && player.inplane != 1) {
+                playerLabel.innerHTML = player.playername + '(' + player.vehiclemodel + ')' ;  
             }
             else {
-                playerLabel.innerHTML = player.playername  + '  [' + player.ATC.split(' ')[0] + ']<br>' + '(' + player.vehiclemodel + ') ' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
+                playerLabel.innerHTML = player.playername ;
             }
-        }
+            playerLabel.style.userSelect = 'none';
 
-        if (idents[player.playername] && player.inplane) {
-            playerLabel.style.backgroundColor = 'yellow';
-            playerLabel.style.color = 'green';   
-        }
-
-        var pxcoord = getimagepx(player.croodx, player.croody);
-        var leftpxcoord = pxcoord[0] - center[0];
-        var toppxcoord = pxcoord[1] - center[1];
-
-        if (leftpxcoord > 0 && leftpxcoord < window.innerWidth && toppxcoord > 0 && toppxcoord < window.innerHeight) {
-            // 设置点的位置
-            playerPoint.style.left = leftpxcoord + 'px';
-            playerPoint.style.top = toppxcoord + 'px';
-
-            // 标签位置调整
-            // 如果没有设置偏移量，则默认为80, -100
-            if (!labelsoffset[player.playername]) {
-                labelsoffset[player.playername] = {
-                    xoffset: 80,
-                    yoffset: -100
-                };
-            }
-            // playersData.labelOffsetX = 80; // X轴偏移量
-            // playersData.labelOffsetY = -100; // Y轴偏移量
-            var labelOffsetX = labelsoffset[player.playername].xoffset;
-            var labelOffsetY = labelsoffset[player.playername].yoffset;
-            playerLabel.style.left = (leftpxcoord + labelOffsetX) + 'px'; // 标签右移
-            playerLabel.style.top = (toppxcoord + labelOffsetY) + 'px'; // 标签上移
-
-            mapContainer.appendChild(playerPoint);
-            mapContainer.appendChild(playerLabel);
-
-            // SVG 绘制连接线
-            var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            svg.style.position = "absolute";
-            svg.style.left = "0px";
-            svg.style.top = "0px";
-            svg.style.width = "100%";
-            svg.style.height = "100%";
-            svg.style.zIndex = "0";
-
-            var line = document.createElementNS('http://www.w3.org/2000/svg','line');
-
-            line.setAttribute('x1', leftpxcoord+3);
-            line.setAttribute('y1', toppxcoord +3);
-            line.setAttribute('x2', leftpxcoord + labelOffsetX + playerLabel.offsetWidth / 2);
-            line.setAttribute('y2', toppxcoord + labelOffsetY  + playerLabel.offsetHeight / 2);
-            line.setAttribute('stroke', '#000000');
-            line.setAttribute('stroke-width', '2');
-
-            svg.appendChild(line);
-            mapContainer.appendChild(svg);
-
-            //绘制速度预计线
             if (player.inplane === 1) {
-                var speedsvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                speedsvg.style.position = "absolute";
-                speedsvg.style.left = "0px";
-                speedsvg.style.top = "0px";
-                speedsvg.style.width = "100%";
-                speedsvg.style.height = "100%";
-                speedsvg.style.zIndex = "0";
-
-                var speedline = document.createElementNS('http://www.w3.org/2000/svg','line');
-    
-                //根据玩家的朝向和速度，计算画线的终点
-                // console.log(360-player.heading);
-                heading = 360 - player.heading;
-                //根据速度计算x分量
-                // console.log(player.speed);
-                // console.log(3-zoom);
-                var speedx = (Math.sin(heading * Math.PI / 180) * player.speed)/(Math.pow(2,3-zoom));
-                //根据速度计算y分量
-                var speedy = -((Math.cos(heading * Math.PI / 180) * player.speed)/(Math.pow(2,3-zoom)));
-                // console.log(speedx, speedy);
-
-                
-                //绘制
-                speedline.setAttribute('x1', leftpxcoord+3);
-                speedline.setAttribute('y1', toppxcoord +3);
-                speedline.setAttribute('x2', leftpxcoord + speedx+3);
-                speedline.setAttribute('y2', toppxcoord + speedy+3);
-                speedline.setAttribute('stroke', '#FF0000');
-                speedline.setAttribute('stroke-width', '2');
-
-                speedsvg.appendChild(speedline);
-                mapContainer.appendChild(speedsvg);
+                playerLabel.classList.add('in-plane');
+                if (player.ATC === null) {
+                    playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ '<br>' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
+                }
+                else {
+                    playerLabel.innerHTML = player.playername  + '  [' + player.ATC.split(' ')[0] + ']<br>' + '(' + player.vehiclemodel + ') ' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
+                }
             }
-            //鼠标可以拖动标签
-            // playerLabel.onmousedown = function (e) {
 
-            //     document.onmousemove = function (e) {
-            //         // 根据鼠标拖动更新labelsoffset
-            //         labelsoffset[player.playername].xoffset += e.movementX ;
-            //         labelsoffset[player.playername].yoffset += e.movementY;
-            //     }
-            //     document.onmouseup = function () {
-            //         document.onmousemove = null;
-            //         document.onmouseup = null;
-            //     }
-            // }
-        }
-        //检测ATC的更新，如果更新了，就闪一下标签
+            if (idents[player.playername] && player.inplane) {
+                playerLabel.style.backgroundColor = 'yellow';
+                playerLabel.style.color = 'green';   
+            }
 
-    });
+            var pxcoord = getimagepx(player.croodx, player.croody);
+            var leftpxcoord = pxcoord[0] - center[0];
+            var toppxcoord = pxcoord[1] - center[1];
+
+            if (leftpxcoord > 0 && leftpxcoord < window.innerWidth && toppxcoord > 0 && toppxcoord < window.innerHeight) {
+                // 设置点的位置
+                playerPoint.style.left = leftpxcoord + 'px';
+                playerPoint.style.top = toppxcoord + 'px';
+
+                // 标签位置调整
+                // 如果没有设置偏移量，则默认为80, -100
+                if (!labelsoffset[player.playername]) {
+                    labelsoffset[player.playername] = {
+                        xoffset: 80,
+                        yoffset: -100
+                    };
+                }
+                // playersData.labelOffsetX = 80; // X轴偏移量
+                // playersData.labelOffsetY = -100; // Y轴偏移量
+                var labelOffsetX = labelsoffset[player.playername].xoffset;
+                var labelOffsetY = labelsoffset[player.playername].yoffset;
+                playerLabel.style.left = (leftpxcoord + labelOffsetX) + 'px'; // 标签右移
+                playerLabel.style.top = (toppxcoord + labelOffsetY) + 'px'; // 标签上移
+
+                mapContainer.appendChild(playerPoint);
+                mapContainer.appendChild(playerLabel);
+
+                // SVG 绘制连接线
+                var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svg.style.position = "absolute";
+                svg.style.left = "0px";
+                svg.style.top = "0px";
+                svg.style.width = "100%";
+                svg.style.height = "100%";
+                svg.style.zIndex = "0";
+
+                var line = document.createElementNS('http://www.w3.org/2000/svg','line');
+
+                line.setAttribute('x1', leftpxcoord+3);
+                line.setAttribute('y1', toppxcoord +3);
+                line.setAttribute('x2', leftpxcoord + labelOffsetX + playerLabel.offsetWidth / 2);
+                line.setAttribute('y2', toppxcoord + labelOffsetY  + playerLabel.offsetHeight / 2);
+                line.setAttribute('stroke', '#000000');
+                line.setAttribute('stroke-width', '2');
+
+                svg.appendChild(line);
+                mapContainer.appendChild(svg);
+
+                //绘制速度预计线
+                if (player.inplane === 1) {
+                    var speedsvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    speedsvg.style.position = "absolute";
+                    speedsvg.style.left = "0px";
+                    speedsvg.style.top = "0px";
+                    speedsvg.style.width = "100%";
+                    speedsvg.style.height = "100%";
+                    speedsvg.style.zIndex = "0";
+
+                    var speedline = document.createElementNS('http://www.w3.org/2000/svg','line');
+        
+                    //根据玩家的朝向和速度，计算画线的终点
+                    // console.log(360-player.heading);
+                    heading = 360 - player.heading;
+                    //根据速度计算x分量
+                    // console.log(player.speed);
+                    // console.log(3-zoom);
+                    var speedx = (Math.sin(heading * Math.PI / 180) * player.speed)/(Math.pow(2,3-zoom));
+                    //根据速度计算y分量
+                    var speedy = -((Math.cos(heading * Math.PI / 180) * player.speed)/(Math.pow(2,3-zoom)));
+                    // console.log(speedx, speedy);
+
+                    
+                    //绘制
+                    speedline.setAttribute('x1', leftpxcoord+3);
+                    speedline.setAttribute('y1', toppxcoord +3);
+                    speedline.setAttribute('x2', leftpxcoord + speedx+3);
+                    speedline.setAttribute('y2', toppxcoord + speedy+3);
+                    speedline.setAttribute('stroke', '#FF0000');
+                    speedline.setAttribute('stroke-width', '2');
+
+                    speedsvg.appendChild(speedline);
+                    mapContainer.appendChild(speedsvg);
+                }
+                //鼠标可以拖动标签
+                // playerLabel.onmousedown = function (e) {
+
+                //     document.onmousemove = function (e) {
+                //         // 根据鼠标拖动更新labelsoffset
+                //         labelsoffset[player.playername].xoffset += e.movementX ;
+                //         labelsoffset[player.playername].yoffset += e.movementY;
+                //     }
+                //     document.onmouseup = function () {
+                //         document.onmousemove = null;
+                //         document.onmouseup = null;
+                //     }
+                // }
+            }
+            //检测ATC的更新，如果更新了，就闪一下标签
+        
+
+        });
+    }
+
+    // console.log("ticking");
     requestAnimationFrame(draw);
 }
 // , 10); 
@@ -360,32 +420,9 @@ document.onmousedown = function (e) {
 }
 
 function click(e) {
-    if (isTouchDevice()) {
-        // 触摸设备处理
-        if (e.target.classList.contains('player-label') || e.target.classList.contains('player-label in-plane')) {
-            var playerLabel = e.target;
 
-            // 添加触摸移动事件监听器
-            playerLabel.addEventListener('touchmove', function (e) {
-                e.preventDefault(); // 阻止默认的触摸事件，避免页面滚动或缩放
-                var touch = e.touches[0];
-                labelsoffset[playerLabel.id].xoffset += touch.clientX - labelsoffset[playerLabel.id].lastX;
-                labelsoffset[playerLabel.id].yoffset += touch.clientY - labelsoffset[playerLabel.id].lastY;
-                labelsoffset[playerLabel.id].lastX = touch.clientX;
-                labelsoffset[playerLabel.id].lastY = touch.clientY;
-            });
-        } else {
-            // 添加全局触摸移动事件监听器，用于地图拖动
-            document.addEventListener('touchmove', function (e) {
-                e.preventDefault(); // 阻止默认的触摸事件，避免页面滚动或缩放
-                if (mapimage && typeof mapimage.onTouchmove === 'function') {
-                    mapimage.onTouchmove(e);
-                    mapimage.isMousedown = true;
-                }
-            });
-        }
-    } else {
         // 非触摸设备处理
+    if (devicetype === 'mouse' || devicetype === 'touch&mouse') {
         if (e.target.classList.contains('player-label') || e.target.classList.contains('player-label in-plane')) {
             var playerLabel = e.target;
 
@@ -404,8 +441,32 @@ function click(e) {
             };
         }
     }
+    //  if (devicetype === 'touch&mouse') {
+    //     if (e.target.classList.contains('player-label') || e.target.classList.contains('player-label in-plane')) {
+    //         var playerLabel = e.target;
 
-    // 添加鼠标/触摸释放事件监听器，解除绑定
+    //         // 添加触摸移动事件监听器
+    //         playerLabel.addEventListener('touchmove', function (e) {
+    //             e.preventDefault(); // 阻止默认的触摸事件，避免页面滚动或缩放
+    //             var touch = e.touches[0];
+    //             labelsoffset[playerLabel.id].xoffset += touch.clientX - labelsoffset[playerLabel.id].lastX;
+    //             labelsoffset[playerLabel.id].yoffset += touch.clientY - labelsoffset[playerLabel.id].lastY;
+    //             labelsoffset[playerLabel.id].lastX = touch.clientX;
+    //             labelsoffset[playerLabel.id].lastY = touch.clientY;
+    //         });
+    //     } else {
+    //         // 添加全局触摸移动事件监听器，用于地图拖动
+    //         document.addEventListener('touchmove', function (e) {
+    //             e.preventDefault(); // 阻止默认的触摸事件，避免页面滚动或缩放
+    //             if (mapimage && typeof mapimage.onTouchmove === 'function') {
+    //                 mapimage.onTouchmove(e);
+    //                 mapimage.isMousedown = true;
+    //             }
+    //         });
+    //     }
+    // }
+
+    // 添加鼠标释放事件监听器，解除绑定
     document.onmouseup = function () {
         document.onmousemove = null;
         document.onmouseup = null;
@@ -415,22 +476,141 @@ function click(e) {
     };
 }
 
-// 检测是否为触摸设备
-function isTouchDevice() {
-    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+//处理触摸设备
+//阻止浏览器原本的双指缩放和单指滚动
+
+if (devicetype === 'touch' || devicetype === 'touch&mouse') {
+
+
+    
+        
+    document.addEventListener('touchstart', function (e) {
+        if (e.touches.length > 1) {
+            // 阻止双指缩放
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+
+
+    document.addEventListener('touchmove', function (e) {
+        if (e.touches.length > 1) {
+            // 阻止双指缩放
+            e.preventDefault();
+        } else if (e.touches.length === 1) {
+            // 阻止单指滚动
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    //处理触摸设备
+
+    document.addEventListener('touchstart', function (e) {
+
+    // document.ontouchstart = function (e) {
+        // console.log('touchstart');
+        if (devicetype === 'touch&mouse' || devicetype === 'touch') {
+            //如果是单指，等0.1秒，如果没有第二个触摸点，则认为是单击
+            if (e.touches.length == 1) {
+                // console.log('touchstart');
+                touchtimer = setTimeout(() => {
+                    // 重新获取触摸点的数量
+                    if (e.targetTouches.length == 1) {
+                        singletouch(e);
+                    }
+                }, 100);
+            } else if (e.touches.length == 2) {
+                // 处理双指触摸
+                clearTimeout(touchtimer); // 清除单指触摸的计时器
+                doubletouch(e);
+            }
+        } 
+    // }
+    });
 }
 
-// 输出设备类型检测结果,仅测试
-function outputDeviceType() {
-    if (isTouchDevice()) {
-        console.log('当前设备是触摸设备');
-    } else {
-        console.log('当前设备不是触摸设备');
-    }
+
+
+function singletouch(e) {
+    //单指移动
+    //如果点在了玩家标签上，那么移动标签
+    console.log('singletouch');
+    if (e.target.classList.contains('player-label') || e.target.classList.contains('player-label in-plane')) {
+        var playerLabel = e.target;
+
+        // 添加触摸移动事件监听器，处理玩家标签的拖动
+        document.ontouchmove = function (e) {
+            var touch = e.touches[0];
+            labelsoffset[playerLabel.id].xoffset += touch.clientX - playerLabel.startX;
+            labelsoffset[playerLabel.id].yoffset += touch.clientY - playerLabel.startY;
+            playerLabel.startX = touch.clientX;
+            playerLabel.startY = touch.clientY;
+        };
+
+        // 记录初始触摸点
+        var touch = e.touches[0];
+        playerLabel.startX = touch.clientX;
+        playerLabel.startY = touch.clientY;
+    } 
 }
 
-// 调用输出设备类型检测结果的函数
-outputDeviceType();
+
+//记录初始时的两个手指位置，如果两个手指距离与初始距离相差超过100px，则认为是双指缩放
+let touchdistanceinitial = 0;
+//因为手指移动的函数会多次调用，所以需要一个变量来记录当前的缩放级别
+let currentzoom = 0;
+//手指没有movementX，movementY，所以需要记录初始位置
+let lastTouchX = 0;
+let lastTouchY = 0;
+//记录点下去的时候画布的位置
+let canvasx = 0;
+let canvasy = 0;
+function doubletouch(e) {
+    console.log('doubletouch');
+    touchPoints = true;
+    //记录两手指间的距离
+    let touch1 = e.touches[0];
+    let touch2 = e.touches[1];
+    touchdistanceinitial = Math.sqrt(Math.pow(touch1.clientX - touch2.clientX, 2) + Math.pow(touch1.clientY - touch2.clientY, 2));
+    // console.log(touchdistanceinitial);
+    currentzoom = mapimage.zoom;
+    lastTouchX = (touch1.clientX + touch2.clientX) / 2;
+    lastTouchY = (touch1.clientY + touch2.clientY) / 2;
+    canvasx = mapimage.center[0];
+    canvasy = mapimage.center[1];
+    // console.log(canvasx, canvasy);
+
+    
+    document.addEventListener('touchmove', function (e) {
+        
+        requestAnimationFrame(function() {
+            if (mapimage && typeof mapimage.ontouchmove === 'function') {
+                // console.log('touchmove');
+                mapimage.ontouchmove(e);
+                mapimage.isTouchdown = true;
+            }
+            
+        });
+        doubletouchmove = true;
+        doubletouche = e;
+    }, { passive: false });
+
+   
+    document.addEventListener('touchend', function () {
+        // console.log('touchend');
+        doubletouchmove = false;
+        touchPoints = false;
+    });
+
+    document.addEventListener('touchcancel', function () {
+        // console.log('touchcancel');
+        doubletouchmove = false;
+    });
+        
+}
+
+
+
 
 
 //读取<div class="draw-line">
@@ -554,9 +734,17 @@ class imageCache {
 
     //渲染
     render () {
-        let ctx = this.canvas.getContext('2d');
-        // console.log(this.x, this.y);
-        ctx.drawImage(this.img, this.x, this.y);
+        // let ctx = this.canvas.getContext('2d');
+        // console.log(this.img);
+        // ctx.drawImage(this.img, this.x, this.y);
+
+        if (this.img && this.img.complete && this.img.naturalWidth !== 0) {
+            let ctx = this.canvas.getContext('2d');
+            // console.log(this.img);
+            ctx.drawImage(this.img, this.x, this.y);
+        } else {
+            console.error('Image is not loaded or is broken:', this.img);
+        }
     }
     
     load () {
@@ -588,7 +776,18 @@ class imageCache {
     }
 }
     
-
+//正数变1，负数变-1
+function sign(x) {
+    if (x > 0) {
+        return 1;
+    }
+    else if (x < 0) {
+        return -1;
+    }
+    else {
+        return 0;
+    }
+}
 
 var mapimage = new Vue({
     // 对于<div class="map" ref="map">
@@ -600,6 +799,9 @@ var mapimage = new Vue({
         window.addEventListener("mousemove", this.onMousemove);
         
         window.addEventListener("mousewheel", this.onMousewheel);
+
+        // window.addEventListener("touchstart", this.ontouchstart);
+        // window.addEventListener("touchend", this.ontouchend);
         
         //按H回中
         window.addEventListener("keydown", (e) => {
@@ -646,6 +848,7 @@ var mapimage = new Vue({
             maxzoom : 3,
             minzoom : 0,
             center: [0, 0]  ,
+            isTouchdown: false,
 
         }
     },
@@ -664,7 +867,7 @@ var mapimage = new Vue({
             if (!this.isMousedown) {
                 return;
             }
-            // console.log('map move');
+            // console.log('mapmove');
             // 计算本次拖动的距离对应像素
             let offsetX = e.movementX;
             let offsetY = e.movementY;
@@ -676,8 +879,124 @@ var mapimage = new Vue({
             x = this.center[0] - offsetX;   
             // console.log(x);
             y = this.center[1] - offsetY;
+            // console.log(x, y);
             this.reload(x,y);
 
+        },
+
+        ontouchmove(e) {
+            // console.log('touchmove');
+            if (!this.isTouchdown) {
+                return;
+            }
+            //如果是双指,有缩放地图和拖动地图的功能
+            if  (e.touches.length == 2) {
+                //处理双指缩放
+                //时刻监测两手指间的距离
+                //每300像素为一个单位
+                let zoomchange = 0;
+                let touchdistance =  Math.sqrt(Math.pow(e.touches[0].clientX - e.touches[1].clientX, 2) + Math.pow(e.touches[0].clientY - e.touches[1].clientY, 2));
+                // console.log(touchdistance - touchdistanceinitial);
+
+                if (touchdistance - touchdistanceinitial > 0){
+                zoomchange = Math.floor((touchdistance - touchdistanceinitial) / 300);
+                }
+                else if (touchdistance - touchdistanceinitial < 0){
+                    zoomchange = Math.ceil((touchdistance - touchdistanceinitial) / 300);
+                }
+
+                // console.log(currentzoom + zoomchange);
+                //更改zoom
+                if (currentzoom + zoomchange <= this.maxzoom && currentzoom + zoomchange >= this.minzoom) {
+                    // console.log(currentzoom + zoomchange);
+                    this.zoom = currentzoom + zoomchange;
+                    
+                    // console.log(zoomchange);
+                    // console.log(this.zoom, zoom);
+                    
+                }
+                else if (currentzoom + zoomchange > this.maxzoom) {
+                    this.zoom = this.maxzoom;
+                    zoom = this.zoom;
+                }
+                else if (currentzoom + zoomchange < this.minzoom) {
+                    this.zoom = this.minzoom;
+                    zoom = this.zoom;
+                }
+
+
+
+
+                //仅在zoom改变时执行
+                
+                if (zoom != this.zoom){
+                    zoom = this.zoom;
+                    //缩放时，保持两个手指的中心点不变
+                    let fingercenterx = (e.touches[0].clientX + e.touches[1].clientX) / 2 +center[0];
+                    let fingercentery = (e.touches[0].clientY + e.touches[1].clientY) / 2 +center[1];
+
+                    // console.log(Math.pow(2, zoomchange));
+                    fingercenterx = fingercenterx * (Math.pow(2, sign(zoomchange)));
+                    fingercentery = fingercentery * (Math.pow(2, sign(zoomchange)));
+                    console.log(fingercenterx, fingercentery);
+                    center[0] = fingercenterx - (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    center[1] = fingercentery - (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    this.center = [center[0], center[1]];
+                    // console.log(center);
+                    this.clear();
+                    this.reload(0,0);
+
+
+                        //记录两手指间的距离
+                    let touch1 = e.touches[0];
+                    let touch2 = e.touches[1];
+
+                    lastTouchX = (touch1.clientX + touch2.clientX) / 2;
+                    lastTouchY = (touch1.clientY + touch2.clientY) / 2;
+                    canvasx = mapimage.center[0];
+                    canvasy = mapimage.center[1];
+
+
+
+                }
+                // 没有缩放时，拖动，因为它们不能在同一帧内执行
+                else{
+                                    //处理拖动
+                    //以两个手指的中心点计算
+                    let fingercenterx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    let fingercentery = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    // console.log(fingercenterx, fingercentery);
+
+                    // 根据当前位置相对于刚点击时的位置计算偏移量
+                    let offsetX = fingercenterx - lastTouchX;
+                    let offsetY = fingercentery - lastTouchY;
+
+                    // 获取canvas元素
+                    let canvas = this.$refs.canvas;
+                    let ctx = canvas.getContext('2d');
+                    // 清除画布
+                    
+                    // console.log(offsetX, offsetY);
+                    
+                    //因为这个函数会一直触发，xy要针对一开始点下去的位置计算
+                    x = canvasx - offsetX;
+                    y = canvasy - offsetY;
+                    // console.log(x, y);
+                    this.clear();
+                    center = [x, y];
+                    this.center = [x, y];
+                    this.reloadInPosition(x,y);
+                }
+
+            }
+
+
+        
+        },
+
+        ontouchup() {
+            this.isTouchdown = false;
+            console.log('touchup');
         },
 
 
@@ -752,6 +1071,7 @@ var mapimage = new Vue({
         //     this.reload(0,0);
         // },
 
+        //传入的x,y是偏移量
         reload(x,y){
             //左上角是x,y
             let canvas = this.$refs.canvas;
@@ -798,7 +1118,38 @@ var mapimage = new Vue({
                     // }
                 }
             }
+        },
+        reloadInPosition(absX, absY) {
+            // 更新中心点为绝对位置
+            center = [absX, absY];
+        
+            let canvas = this.$refs.canvas;
+            let row = Math.floor(center[1] / 1500);
+            let col = Math.floor(center[0] / 1500);
+            let ctx = canvas.getContext('2d');
+            let rownum = Math.ceil(window.screen.height / 1500) + 1;
+            let colnum = Math.ceil(window.screen.width / 1500) + 1;
+        
+            for (let i = 0; i < rownum; i++) {
+                for (let j = 0; j < colnum; j++) {
+                    let image = new Image();
+                    if (row + i < 0 || col + j < 0) {
+                        continue;
+                    }
+                    image.src = `https://hjdczy.top:3307/mydevice/webmap/${this.zoom}/${col + j}/${row + i}.png`;
+        
+                    // 读取缓存
+                    var currentcachekey = (row + i) + '_' + (col + j) + '_' + this.zoom;
+                    if (images[currentcachekey]) {
+                        images[currentcachekey].update(-(center[0] - (col + j) * 1500), -(center[1] - (row + i) * 1500));
+                    } else {
+                        images[currentcachekey] = new imageCache(i, j, this.zoom, j * 1500 - center[0] % 1500, i * 1500 - center[1] % 1500, image.src, image, canvas);
+                        images[currentcachekey].load();
+                    }
+                }
+            }
         }
+
     }
 
 
