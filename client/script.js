@@ -142,7 +142,7 @@ websocket.onmessage = function (evt) {
         if (player.playername === undefined) {
             continue;
         }
-        else if ( player.ATC !== null && player.ATC !== undefined) {
+        else if ( player.ATC !== null && player.ATC !== undefined && player.ATC !== '' && player.ATC !== ' ') {
             // console.log(player);
             let playername = player.playername;
             let playeritem = document.createElement('tr');
@@ -237,16 +237,16 @@ function draw () {
             if (player.inplane === 1) {
                 playerLabel.classList.add('in-plane');
                 // console.log(player.squawk);
-                if (player.ATC === null  && player.squawk === 0) {
+                if ((player.ATC === null || player.ATC === '' || player.ATC === ' ' || player.ATC === undefined) && player.squawk === 0) {    
                     playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ '<br>' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
                 }
-                else if (player.ATC === null) {
+                else if ((player.ATC === null || player.ATC === '' || player.ATC === ' ' || player.ATC === undefined)) {
                     playerLabel.innerHTML = player.playername  + "[" + player.squawk + ']' + '<br>' + '(' + player.vehiclemodel + ') '+ '<br>' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
                 }
-                else if (player.squawk !== 0 && player.ATC !== null) {
+                else if (player.squawk !== 0 && (player.ATC !== null && player.ATC !== '' && player.ATC !== ' ' && player.ATC !== undefined)) {
                     playerLabel.innerHTML = player.ATC.split(' ')[0] + '[' + player.squawk + ']' + '<br>' + '(' + player.vehiclemodel + ') ' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
                 }
-                else if (player.ATC !== null && player.squawk === 0) {
+                else if ((player.ATC !== null && player.ATC !== '' && player.ATC !== ' ' && player.ATC !== undefined) && player.squawk === 0) {
                     playerLabel.innerHTML =   player.ATC.split(' ')[0] + '<br>' + '(' + player.vehiclemodel + ') ' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
                 }
                 else {
