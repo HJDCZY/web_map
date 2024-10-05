@@ -114,8 +114,6 @@ websocket.onmessage = function (evt) {
     }
     if (!Array.isArray(data)) {
         data = [data];
-        
-
     }
     // console.log(data);
     playersData = data;
@@ -140,17 +138,16 @@ websocket.onmessage = function (evt) {
 
     for (let i in data) {
         let player = data[i];
-        console.log(player.playername);
+        // console.log(player.playername);
         if (player.playername === undefined) {
             continue;
         }
         else if ( player.ATC !== null && player.ATC !== undefined) {
-            
             // console.log(player);
             let playername = player.playername;
             let playeritem = document.createElement('tr');
             //截取data.ATC空格为分隔的第一个元素
-            console.log(player.ATC);
+            // console.log(player.ATC); 
             callsign = player.ATC.split(' ')[0];
             let playernameitem = document.createElement('td');
             playernameitem.innerHTML = playername;
@@ -200,8 +197,7 @@ function ident(playername,playerserverid) {
 
 }
 
-//设置定时任务
-// setInterval(
+
 
 let lastCallTime = 0;
 const fps = 30; // 每秒帧数
@@ -240,17 +236,40 @@ function draw () {
 
             if (player.inplane === 1) {
                 playerLabel.classList.add('in-plane');
-                if (player.ATC === null) {
+                // console.log(player.squawk);
+                if (player.ATC === null  && player.squawk === 0) {
                     playerLabel.innerHTML = player.playername  + '<br>' + '(' + player.vehiclemodel + ') '+ '<br>' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
                 }
+                else if (player.ATC === null) {
+                    playerLabel.innerHTML = player.playername  + "[" + player.squawk + ']' + '<br>' + '(' + player.vehiclemodel + ') '+ '<br>' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
+                }
+                else if (player.squawk !== 0 && player.ATC !== null) {
+                    playerLabel.innerHTML = player.ATC.split(' ')[0] + '[' + player.squawk + ']' + '<br>' + '(' + player.vehiclemodel + ') ' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
+                }
+                else if (player.ATC !== null && player.squawk === 0) {
+                    playerLabel.innerHTML =   player.ATC.split(' ')[0] + '<br>' + '(' + player.vehiclemodel + ') ' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
+                }
                 else {
-                    playerLabel.innerHTML = player.playername  + '  [' + player.ATC.split(' ')[0] + ']<br>' + '(' + player.vehiclemodel + ') ' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
+                    playerLabel.innerHTML = player.playername + '<br>' + '(' + player.vehiclemodel + ') '+ '<br>' + Math.floor(player.croodz* 3.2808399) + 'ft'+" " + player.speed + 'kt';
                 }
             }
 
             if (idents[player.playername] && player.inplane) {
                 playerLabel.style.backgroundColor = 'yellow';
                 playerLabel.style.color = 'green';   
+            }
+            if (player.squawk === 7500) {
+                playerLabel.style.backgroundColor = 'black';
+                playerLabel.style.color = 'white';
+            }
+            if (player.squawk === 7600) {
+                // 0039D7
+                playerLabel.style.backgroundColor = '#0039D7';
+                playerLabel.style.color = 'white';
+            }
+            if (player.squawk === 7700) {
+                playerLabel.style.backgroundColor = 'red';
+                playerLabel.style.color = 'white';
             }
 
             var pxcoord = getimagepx(player.croodx, player.croody);

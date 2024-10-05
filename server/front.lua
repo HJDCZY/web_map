@@ -43,7 +43,7 @@ for i=1,50 do
     players[i] = nil ;
 end
 local player = {}
-function player.new(croodx,croody,croodz,speed,inplane,serverid,playername,heading,vehiclemodel,ATC) 
+function player.new(croodx,croody,croodz,speed,inplane,serverid,playername,heading,vehiclemodel,ATC,squawk)
     local self = setmetatable({},player)
     self.croodx = croodx
     self.croody = croody
@@ -55,6 +55,7 @@ function player.new(croodx,croody,croodz,speed,inplane,serverid,playername,headi
     self.heading = heading
     self.vehiclemodel = vehiclemodel
     self.ATC = ATC
+    self.squawk = squawk
     return self
 end
 function player:move(newcroodx,newcroody,newcroodz,newspeed,inplane,heading,vehiclemodel)
@@ -110,7 +111,7 @@ local function querydatabase()
     end
     for i, row in ipairs(res) do
         player_count = player_count + 1
-        players[i] = player.new(row["croodx"],row["croody"],row["croodz"],row["speed"],row["inplane"],row["serverid"],row["playername"],row["heading"],row["vehiclemodel"],row["ATC"])
+        players[i] = player.new(row["croodx"],row["croody"],row["croodz"],row["speed"],row["inplane"],row["serverid"],row["playername"],row["heading"],row["vehiclemodel"],row["ATC"],row["squawk"])
         -- 如果有一个查到ident = 1
         if row["ident"] == 1 then
             ident(row["serverid"],row["playername"])

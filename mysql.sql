@@ -19,5 +19,6 @@ CREATE TABLE IF NOT EXISTS `webmap_players` (
     `vehiclemodel` varchar(255) NOT NULL,
     `ATC` longtext NULL,
     `ident` boolean NOT NULL,
+    `squawk` int(4) NOT NULL DEFAULT 0,
     PRIMARY KEY (`serverid`)
 ) ;

@@ -64,3 +64,31 @@ RegisterCommand ('ident', function(source, args, rawCommand)
     local playerserverid = GetPlayerServerId(PlayerId())
     TriggerServerEvent('webmap:ident', playerserverid)
 end, false)
+
+RegisterCommand ('squawk', function(source, args, rawCommand)
+    local playerserverid = GetPlayerServerId(PlayerId())
+    -- print (args[1])
+    -- 验证输入应为4个8进制数字
+    if args[1] == nil or args[1] == "" then
+        TriggerEvent('chat:addMessage', {
+            color = { 255, 0, 0},
+            multiline = true,
+            args = {"[ATC]", "请输入4位8进制数的应答机代码"}
+        })
+        return
+    end
+    local squawk = args[1]
+    -- 验证4位数都是0-7
+    print (squawk)
+    if string.match(squawk, "[0-7][0-7][0-7][0-7]") == nil then
+        TriggerEvent('chat:addMessage', {
+            color = { 255, 0, 0},
+            multiline = true,
+            args = {"[ATC]", "请输入4位8进制数的应答机代码"}
+        })
+        return
+    end
+    local squawkcode = tonumber(squawk)
+    print (squawkcode)
+    TriggerServerEvent('webmap:squawk', playerserverid, squawkcode)
+end, false)

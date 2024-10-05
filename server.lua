@@ -56,3 +56,14 @@ AddEventHandler ('webmap:ident', function (playerserverid)
         -- print(rowsChanged)
     end)
 end)
+
+RegisterNetEvent('webmap:squawk')
+AddEventHandler ('webmap:squawk', function (playerserverid, squawk)
+    --更新mysql
+    MySQL.Async.execute('UPDATE webmap_players SET squawk = @squawk WHERE serverid = @serverid', {
+        ['@squawk'] = squawk,
+        ['@serverid'] = playerserverid
+    }, function(rowsChanged)
+        -- print(rowsChanged)
+    end)
+end)
