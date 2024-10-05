@@ -95,6 +95,14 @@ The effect is as follows:
 For players:
 - Players can send messages (usually flight plans) to the online map by entering the command `/ATC [... ...]` in the game (where `[... ...]` is the text content, with spaces between the command and the text content). Controllers can view this message by placing the mouse over the player tag and pressing the space bar. Click elsewhere with the left mouse button to close.
 - Players can simulate identifying their transponder by entering `/ident` in the game. After the player identifies their transponder, on the online map, the player's tag will be highlighted for 5 seconds to remind the controller.
+- Players can Set their transponder code with `/squawk [4-digit octal number]`. Special codes like 7500, 7600, and 7700 display in different colors.
+
+### July 28, 2024 Update
+Added pinch zoom and drag support for touch devices. However, due to performance limitations, tag loading pauses when fingers touch the screen, and the map's frame rate is capped at 30 FPS.
+
+### October 5, 2024 Update
+Added transponder functionality and updated tag display. Now, only the call sign is shown if available, and either the call sign or the name is displayed (but not both).
+
 
 ## Unresolved Bugs
 1. Sometimes, there are multiple records of the same player with increasing server IDs in the database, which do not exist in the game.
