@@ -65,25 +65,29 @@ document.onmousemove = function (e) {
 function getimagepx (x,y){
     //从游戏坐标转换到图片坐标
 
-    //原图片为12000*12000像素
-    //游戏坐标原点位于地图的6506,6277
+        //原图片为12000*12000像素
+        //游戏坐标原点位于地图的6506,6277
 
-    //玩家在地图中的像素 x 为 玩家X/1.806 + 6506
-    //对于GTA，右上为XY正方向
-    //玩家在地图中的像素 y 为 6277 + 玩家Y/1.806
-    //地图左上为0，右下为正
-    //经修正，修正为6502,6275
+        //玩家在地图中的像素 x 为 玩家X/1.806 + 6506
+        //对于GTA，右上为XY正方向
+        //玩家在地图中的像素 y 为 6277 + 玩家Y/1.806
+        //地图左上为0，右下为正
+        //经修正，修正为6502,6275
+
+    //上面是前三版航图，第四版航图扩大到了30000*30000像素
+    //游戏坐标原点位于地图的15851, 8629
+    var zero = [15851, 8629];
     if (zoom == 3) {
-        return [x/coord_k + 6502, (0-y)/coord_k+6275];
+        return [x/coord_k + zero[0], (0-y)/coord_k+zero[1]];
     }
     else if (zoom == 2) {
-        return [(x/coord_k + 6502)/2, (6277 + (0-y)/coord_k)/2];
+        return [(x/coord_k + zero[0])/2, (zero[1] + (0-y)/coord_k)/2];
     }
     else if (zoom == 1) {
-        return [(x/coord_k + 6502)/4, (6277 + (0-y)/coord_k)/4];
+        return [(x/coord_k + zero[0])/4, (zero[1] + (0-y)/coord_k)/4];
     }
     else {
-        return [(x/coord_k + 6502)/8, (6277 + (0-y)/coord_k)/8];
+        return [(x/coord_k + zero[0])/8, (zero[1] + (0-y)/coord_k)/8];
     }
 
 }
@@ -128,9 +132,19 @@ websocket.onmessage = function (evt) {
     tableheader.appendChild(tableheadercallsign);
     table.appendChild(tableheader);
 
+    //处理没有玩家的情况，data为空
+    // console.log(data.length);
+    if (data.length == 0) {
+        return;
+    }
+
     for (let i in data) {
         let player = data[i];
-        if ( player.ATC !== null && player.ATC !== undefined) {
+        console.log(player.playername);
+        if (player.playername === undefined) {
+            continue;
+        }
+        else if ( player.ATC !== null && player.ATC !== undefined) {
             
             // console.log(player);
             let playername = player.playername;
@@ -148,7 +162,6 @@ websocket.onmessage = function (evt) {
         }
         else 
         {
-            // console.log(player);
             let playername = player.playername;
             let playeritem = document.createElement('tr');
             let playernameitem = document.createElement('td');
