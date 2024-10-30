@@ -76,7 +76,9 @@ function getimagepx (x,y){
 
     //上面是前三版航图，第四版航图扩大到了30000*30000像素
     //游戏坐标原点位于地图的15851, 8629
-    var zero = [15851, 8629];
+    //上面是前四版航图，第五版航图扩大到了36000*36000像素
+    //游戏坐标原点位于地图的18672, 17732
+    var zero = [18790, 17790];
     if (zoom == 3) {
         return [x/coord_k + zero[0], (0-y)/coord_k+zero[1]];
     }
@@ -94,9 +96,6 @@ function getimagepx (x,y){
 
 var playersData = [];
 var labelsoffset = {}; 
-function getgamecoord (x,y){
-    return [(x - 6506) * coord_k, -((y - 6277) * coord_k)];
-}
 
 function db_refresh() {
     //通过websocket发送消息
@@ -258,16 +257,16 @@ function draw () {
                 playerLabel.style.backgroundColor = 'yellow';
                 playerLabel.style.color = 'green';   
             }
-            if (player.squawk === 7500) {
-                playerLabel.style.backgroundColor = 'black';
+            if (player.squawk === 7500&& player.inplane) {
+                playerLabel.style.backgroundColor = 'green';
                 playerLabel.style.color = 'white';
             }
-            if (player.squawk === 7600) {
+            if (player.squawk === 7600&& player.inplane) {
                 // 0039D7
                 playerLabel.style.backgroundColor = '#0039D7';
                 playerLabel.style.color = 'white';
             }
-            if (player.squawk === 7700) {
+            if (player.squawk === 7700&& player.inplane) {
                 playerLabel.style.backgroundColor = 'red';
                 playerLabel.style.color = 'white';
             }
@@ -1049,9 +1048,7 @@ var mapimage = new Vue({
             mousex = center[0] + e.clientX;
             mousey = center[1] + e.clientY;
             // console.log(mousex, mousey);
-            // console.log(getgamecoord(mousex, mousey));
-            // var mousegamecoord = getgamecoord(mousex, mousey);
-            // var mouselater = getimagepx(mousegamecoord[0], mousegamecoord[1]);
+
             if (e.deltaY > 0) {
                 // 层级变小
                 if (this.zoom > this.minzoom) {
